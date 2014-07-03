@@ -31,7 +31,7 @@ end
 
 def store_markov(text)
   # Downcase and remove Slack formatting
-  text = text.downcase.gsub(/<.*?>|[\*`_>\n]/, '')
+  text = text.downcase.gsub(/<.*?>|[\*`_>]/, '').gsub(/\n+/, ' ')
   # Split words into array
   words = text.split(/\s+/)
   # Ignore if phrase is less than 3 words
