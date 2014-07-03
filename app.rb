@@ -23,7 +23,7 @@ post '/markov' do
     store_markov(params[:text])
     if rand <= ENV['RESPONSE_CHANCE'].to_f
       response = { text: build_markov, link_names: 1 }.to_json
-    else
+    end
   end
   
   status 200
