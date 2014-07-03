@@ -29,10 +29,10 @@ end
 
 
 def store_markov(text)
-  # Downcase and remove punctuation
-  text = text.downcase.gsub(/[^\w\s]+/, '')
+  # Downcase and remove links and mentions
+  text = text.downcase.gsub(/<.*?>/, '')
   # Split words into array
-  words = text.split(/\s+/).reject{ |w| w.match(/^http/) }
+  words = text.split(/\s+/)
   # Ignore if phrase is less than 3 words
   unless words.size < 3
     (words.size - 2).times do |i|
