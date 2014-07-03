@@ -5,6 +5,7 @@ configure do
   require 'redis'
   uri = URI.parse(ENV["REDIS_URL"])
   $redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
+  $stdout.sync = true
 end
 
 get '/' do
@@ -41,6 +42,7 @@ def store_markov(text)
       # And the third as a value
       value = words[i+2]
       $redis.sadd(key, value)
+      puts "Stored \"#{key}\" => #{value}"
     end
   end
 end
