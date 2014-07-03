@@ -17,15 +17,13 @@ get '/markov' do
 end
 
 post '/markov' do
+  response = ''
   # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
   unless params[:text].match(/^(cfbot|campfirebot|\/)/i) || params[:user_id] == "USLACKBOT" || params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
     store_markov(params[:text])
-  end
-  
-  if rand <= ENV['RESPONSE_CHANCE'].to_f && params[:user_id] != "USLACKBOT"
-    response = { text: build_markov, link_names: 1 }.to_json
-  else
-    response = ''
+    if rand <= ENV['RESPONSE_CHANCE'].to_f
+      response = { text: build_markov, link_names: 1 }.to_json
+    else
   end
   
   status 200
