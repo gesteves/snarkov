@@ -22,7 +22,7 @@ post '/markov' do
     store_markov(params[:text])
   end
   
-  if rand <= ENV['RESPONSE_CHANCE'].to_f
+  if rand <= ENV['RESPONSE_CHANCE'].to_f && params[:user_id] != "USLACKBOT"
     response = { text: build_markov, link_names: 1 }.to_json
   else
     response = ''
