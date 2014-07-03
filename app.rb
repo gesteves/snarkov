@@ -42,7 +42,6 @@ def store_markov(text)
       # And the third as a value
       value = words[i+2]
       $redis.sadd(key, value)
-      puts "Stored \"#{key}\" => #{value}"
     end
   end
 end
