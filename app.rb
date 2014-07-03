@@ -30,10 +30,9 @@ post '/markov' do
   body response
 end
 
-
 def store_markov(text)
   # Downcase and remove Slack formatting
-  text = text.downcase.gsub(/<.*?>|[\*`_>]/, '').gsub(/\n+/, ' ')
+  text = text.downcase.gsub(/<@([\w]+)>/) { |m| get_slack_username($1) }.gsub(/<.*?>|[\*`_>]/, '').gsub(/\n+/, ' ')
   # Split words into array
   words = text.split(/\s+/)
   # Ignore if phrase is less than 3 words
@@ -75,4 +74,16 @@ end
 
 def get_next_word(first_word, second_word)
   $redis.srandmember("#{first_word} #{second_word}")
+end
+
+def get_slack_username(slack_id)
+  sleep 1
+  uri = "https://slack.com/api/users.list?token=#{ENV["API_TOKEN"]}"
+  users = JSON.parse(HTTParty.get(uri).body)
+  username = ""
+  if users["ok"]
+    user = users["members"].find { |u| u["id"] == slack_id }
+    username = "@#{user["name"]}" unless user.nil?
+  end
+  username
 end
