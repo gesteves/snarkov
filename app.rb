@@ -32,7 +32,7 @@ end
 
 def store_markov(text)
   # Downcase and remove Slack formatting
-  text = text.downcase.gsub(/<@([\w]+)>/) { |m| get_slack_username($1) }.gsub(/<.*?>|[\*`_>]/, '').gsub(/\n+/, ' ')
+  text = text.gsub(/<@([\w]+)>/){ |m| get_slack_username($1) }.gsub(/<.*?>|[\*`_>]/, '').gsub(/\n+/, ' ').downcase
   # Split words into array
   words = text.split(/\s+/)
   # Ignore if phrase is less than 3 words
