@@ -12,6 +12,10 @@ get '/' do
   'hi.'
 end
 
+get '/markov' do
+  build_markov
+end
+
 post '/markov' do
   # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
   unless params[:text].match(/^(cfbot|campfirebot|\/)/i) || params[:user_id] == "USLACKBOT" || params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
