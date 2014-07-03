@@ -62,7 +62,7 @@ def build_markov
 
     # With these two words as a key, get a third word from Redis
     # until there are no more words
-    while new_word = get_next_word(first_word, second_word)
+    while phrase.size <= ENV["MAX_WORDS"].to_i && new_word = get_next_word(first_word, second_word)
       # Add the new word to the array
       phrase << new_word
       # Set the second word and the new word as keys for the next iteration
