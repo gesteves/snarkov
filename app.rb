@@ -3,8 +3,13 @@ require 'json'
 
 configure do
   require 'redis'
-  uri = URI.parse(ENV["REDISCLOUD_URL"])
-  $redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
+  case ENV["RACK_ENV"]
+  when "production"
+    uri = URI.parse(ENV["REDISCLOUD_URL"])
+    $redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
+  when "development"
+    $redis = Redis.new(:host => "localhost", :port => 6379)
+  end
 end
 
 get '/' do
