@@ -50,6 +50,7 @@ def store_markov(text)
         key = words[i..i+1].join(' ')
         # And the third as a value
         value = words[i+2]
+        puts "Stored \"#{key}\" => \"#{value}\""
         $redis.sadd(key, value)
       end
     end
@@ -95,6 +96,7 @@ def get_slack_username(slack_id)
     if users["ok"]
       user = users["members"].find { |u| u["id"] == slack_id }
       username = "@#{user["name"]}" unless user.nil?
+      puts "Found username: #{username}" unless user.nil?
     end
   end
   username
