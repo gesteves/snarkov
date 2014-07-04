@@ -14,7 +14,13 @@ get '/' do
 end
 
 get '/markov' do
-  build_markov
+  if params[:token] == ENV["OUTGOING_WEBHOOK_TOKEN"]
+    status 200
+    body build_markov
+  else
+    status 403
+    body 'Nope.'
+  end
 end
 
 post '/markov' do
