@@ -78,12 +78,15 @@ end
 
 def get_slack_username(slack_id)
   sleep 1
-  uri = "https://slack.com/api/users.list?token=#{ENV["API_TOKEN"]}"
-  users = JSON.parse(HTTParty.get(uri).body)
   username = ""
-  if users["ok"]
-    user = users["members"].find { |u| u["id"] == slack_id }
-    username = "@#{user["name"]}" unless user.nil?
+  uri = "https://slack.com/api/users.list?token=#{ENV["API_TOKEN"]}"
+  request = HTTParty.get(uri)
+  if request.code == 200
+    users = JSON.parse(request.body)
+    if users["ok"]
+      user = users["members"].find { |u| u["id"] == slack_id }
+      username = "@#{user["name"]}" unless user.nil?
+    end
   end
   username
 end
