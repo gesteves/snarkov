@@ -1,5 +1,6 @@
 require 'sinatra'
 require 'json'
+require 'httparty'
 
 configure do
   require 'redis'
