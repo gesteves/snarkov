@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'sinatra'
 require 'json'
 require 'httparty'
@@ -39,7 +40,7 @@ end
 
 def store_markov(text)
   # Downcase and remove Slack formatting
-  text = text.gsub(/<@([\w]+)>/){ |m| get_slack_username($1) }.gsub(/<.*?>|[\*`_<>"\(\)]/, '').gsub(/\n+/, ' ').downcase
+  text = text.gsub(/<@([\w]+)>/){ |m| get_slack_username($1) }.gsub(/<.*?>|[\*`_<>"\(\)“”]/, '').gsub(/\n+/, ' ').gsub(/[‘’]/,'\'').downcase
   # Split words into array
   words = text.split(/\s+/)
   # Ignore if phrase is less than 3 words
