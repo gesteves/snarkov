@@ -2,6 +2,9 @@ GEM
   remote: https://rubygems.org/
   specs:
     daemons (1.1.9)
+    dotenv (0.11.1)
+      dotenv-deployment (~> 0.0.2)
+    dotenv-deployment (0.0.2)
     eventmachine (1.0.3)
     httparty (0.13.1)
       json (~> 1.8)
@@ -26,6 +29,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  dotenv
   httparty
   redis
   sinatra
