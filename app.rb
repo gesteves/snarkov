@@ -30,7 +30,7 @@ end
 post '/markov' do
   response = ''
   # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
-  unless params[:text].match(/^(cfbot|campfirebot|\/)/i) || params[:user_id] == "USLACKBOT" || params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
+  unless params[:text].match(/^(pkmn|cabot|cfbot|campfirebot|\/)/i) || params[:user_id] == "USLACKBOT" || params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
     puts "Storing: #{params[:text]}"
     $redis.pipelined do
       store_markov(params[:text])
@@ -51,7 +51,7 @@ def import_history(channel_id, ts = nil)
   response = JSON.parse(request.body)
   if response['ok']
     # Find all messages that are plain messages (no subtype), are not hidden, are not from a bot (integrations, etc.) and are not cfbot commands
-    messages = response['messages'].find_all{ |m| m['subtype'].nil? && m['hidden'] != true && m['bot_id'].nil? && !m['text'].match(/^(cfbot|campfirebot|\/)/i)  }
+    messages = response['messages'].find_all{ |m| m['subtype'].nil? && m['hidden'] != true && m['bot_id'].nil? && !m['text'].match(/^(pkmn|cabot|cfbot|campfirebot|\/)/i)  }
     puts "Importing #{messages.size} matching messages from #{DateTime.strptime(messages.first['ts'],'%s').strftime('%c')}" if messages.size > 0
     
     $redis.pipelined do
