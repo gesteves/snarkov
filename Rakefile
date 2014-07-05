@@ -6,7 +6,7 @@ namespace :import do
     if args.channel_id.nil?
       puts "You need to specify the ID of the channel you wish to import, e.g. rake import:channel[abc123]"
     else
-      puts "Importing Channel #{args.channel_id}"
+      puts "Importing channel #{get_channel_name(args.channel_id)} (this will take a while)"
       import_history(args.channel_id)
     end
   end

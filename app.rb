@@ -52,7 +52,7 @@ def import_history(channel_id, ts = nil)
   if response['ok']
     # Find all messages that are plain messages (no subtype), are not hidden, are not from a bot (integrations, etc.) and are not cfbot commands
     messages = response['messages'].find_all{ |m| m['subtype'].nil? && m['hidden'] != true && m['bot_id'].nil? && !m['text'].match(/^(pkmn|cabot|cfbot|campfirebot|\/)/i)  }
-    puts "Importing #{messages.size} matching messages from #{DateTime.strptime(messages.first['ts'],'%s').strftime('%c')}" if messages.size > 0
+    puts "Importing #{messages.size} messages from #{DateTime.strptime(messages.first['ts'],'%s').strftime('%c')}" if messages.size > 0
     
     $redis.pipelined do
       messages.each do |m|
@@ -132,4 +132,18 @@ def get_slack_username(slack_id)
     puts "Error fetching username: #{response['error']}" unless response['error'].nil?
   end
   username
+end
+
+def get_channel_name(slack_id)
+  channel_name = slack_id
+  uri = "https://slack.com/api/channels.list?token=#{ENV["API_TOKEN"]}"
+  request = HTTParty.get(uri)
+  response = JSON.parse(request.body)
+  if response['ok']
+    channel = response["channels"].find { |u| u["id"] == slack_id }
+    channel_name = channel["name"] unless channel.nil?
+  else
+    puts "Error fetching channel name: #{response['error']}" unless response['error'].nil?
+  end
+  channel_name
 end
