@@ -8,7 +8,12 @@ require 'dotenv'
 
 configure do
   Dotenv.load
-  uri = URI.parse(ENV["REDIS_URL"])
+  case ENV["RACK_ENV"]
+  when "development"
+    uri = URI.parse(ENV["LOCAL_REDIS_URL"])
+  when "production"
+    uri = URI.parse(ENV["REDISCLOUD_URL"])
+  end
   $redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
   $stdout.sync = true
 end
