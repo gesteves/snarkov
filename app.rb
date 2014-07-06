@@ -139,16 +139,15 @@ def get_slack_username(slack_id)
   username
 end
 
-def get_channel_name(slack_id)
-  channel_name = slack_id
+def get_channel_id(channel_name)
   uri = "https://slack.com/api/channels.list?token=#{ENV["API_TOKEN"]}"
   request = HTTParty.get(uri)
   response = JSON.parse(request.body)
   if response['ok']
-    channel = response["channels"].find { |u| u["id"] == slack_id }
-    channel_name = channel["name"] unless channel.nil?
+    channel = response["channels"].find { |u| u["name"] == channel_name.gsub('#','') }
+    channel_id = channel["id"] unless channel.nil?
   else
     puts "Error fetching channel name: #{response['error']}" unless response['error'].nil?
+    nil
   end
-  channel_name
 end
