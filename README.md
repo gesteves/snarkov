@@ -15,7 +15,7 @@ $ heroku addons:add rediscloud
 $ git push heroku master
 ```
 
-Next, you'll want to set up a Slack [outgoing webhook][ow] to send messages to snarkov. Set it up so it listens to a single channel of your choice, _don't_ set up a keyword, and set the URL to `http://[your-heroku-url]/markov` (you can find out your Heroku url with `heroku info`). Also, copy the integration's token, you'll need it later.
+Next, you'll want to set up a Slack [outgoing webhook][ow] to send messages to snarkov. Set it up so it listens to a single channel of your choice, _don't_ set up a keyword, and set the URL to `http://[your-heroku-url]/markov` (you can find out your Heroku URL with `heroku info`). Also, copy the integration's token, you'll need it later.
 
 You'll also need a Slack API token. You can get one by going to [this page][token] while logged into Slack.
 
