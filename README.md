@@ -36,9 +36,10 @@ Finally, you'll have to set up the config vars for your Heroku app. You can set 
 
 1. Install redis
 2. Create a `.env` file and put the config variables there (see `.env.example`)
-3. Run `foreman start -f Procfile.dev`
-4. Send POST requests to `http://localhost:5000/markov` to populate it, with the `text` parameter being the message's text, and `token` the outgoing webhook's token.
-5. Send GET requests to `http://localhost:5000/markov?token=[OUTGOING_WEBHOOK_TOKEN]` to see a random reply
+3. Run `bundle install`
+4. Run `foreman start -f Procfile.dev`
+5. Send POST requests to `http://localhost:5000/markov` to populate it, with the `text` parameter being the message's text, and `token` the outgoing webhook's token.
+6. Send GET requests to `http://localhost:5000/markov?token=[OUTGOING_WEBHOOK_TOKEN]` to see a random reply
 
 ## Usage
 
