@@ -67,7 +67,9 @@ To populate redis in production, copy the `REDISCLOUD_URL` variable from Heroku 
 $ rake import:channel CHANNELS='#channel-name' RACK_ENV=production
 ```
 
-The `import:channel` task takes a single channel name, or a comma-separated list of channel names, e.g. `rake import:channel CHANNELS='#random,#general'`
+The `import:channel` task takes a single channel name, or a comma-separated list of channel names, e.g.: 
+
+```rake import:channel CHANNELS='#random,#general'```
 
 ## Contributing
 
