@@ -120,6 +120,8 @@ def get_slack_username(slack_id)
 end
 
 def get_channel_id(channel_name)
+  # Wait a second so we don't get rate limited
+  sleep 1
   uri = "https://slack.com/api/channels.list?token=#{ENV["API_TOKEN"]}"
   request = HTTParty.get(uri)
   response = JSON.parse(request.body)
@@ -133,6 +135,8 @@ def get_channel_id(channel_name)
 end
 
 def import_history(channel_id, ts = nil)
+  # Wait 1 second so we don't get rate limited
+  sleep 1
   uri = "https://slack.com/api/channels.history?token=#{ENV["API_TOKEN"]}&channel=#{channel_id}&count=1000"
   uri += "&latest=#{ts}" unless ts.nil?
   request = HTTParty.get(uri)
@@ -151,8 +155,6 @@ def import_history(channel_id, ts = nil)
     # If there are more messages in the API call, make another call, starting with the timestamp of the last message
     if response['has_more'] && !messages.last['ts'].nil?
       ts = messages.last['ts']
-      # Wait 1 second so we don't get rate limited
-      sleep 1
       import_history(channel_id, ts)
     end
   else
