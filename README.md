@@ -58,16 +58,16 @@ Snarkov works better if it has a lot of text to work with. To help populate it, 
 To populate your local redis for dev/testing, use:
 
 ```
-$ rake import:channel[#channel-name]
+$ rake import:channel CHANNELS='#channel-name'
 ```
 
 To populate redis in production, copy the `REDISCLOUD_URL` variable from Heroku into your `.env` file, and then run:
 
 ```
-$ rake import:channel[#channel-name] RACK_ENV=production
+$ rake import:channel CHANNELS='#channel-name' RACK_ENV=production
 ```
 
-The `import:channel` task takes a comma-separated list of Slack channel names, e.g. `rake import:channel[#random,#general]`
+The `import:channel` task takes a single channel name, or a comma-separated list of channel names, e.g. `rake import:channel CHANNELS='#random,#general'`
 
 ## Contributing
 
