@@ -53,7 +53,7 @@ $ curl -s http://[your-heroku-url]/markov?token=[outgoing-webhook-token] | say -
 
 ## Importing channels
 
-Snarkov works better if it has a lot of text to work with. To help populate it, you can feed it the entire history of a channel of your choice. **Warning:** Depending on how many messages are in the channel's history, this might take a long time, and potentially fill up your free Redis Cloud account very quickly. You'll probably want to go to your Heroku dashboard and upgrade your Redis Cloud account to one of the paid levels before doing this.
+Snarkov works better if it has a lot of text to work with. To help populate it, you can feed it the entire history of a list of Slack channels. **Warning:** Depending on how many messages are in the channel's history, this might take a long time, and potentially fill up your free Redis Cloud account very quickly. You'll probably want to go to your Heroku dashboard and upgrade your Redis Cloud account to one of the paid levels before doing this.
 
 To populate your local redis for dev/testing, use:
 
@@ -66,6 +66,8 @@ To populate redis in production, copy the `REDISCLOUD_URL` variable from Heroku 
 ```
 $ rake import:channel[#channel-name] RACK_ENV=production
 ```
+
+The `import:channel` task takes a comma-separated list of Slack channel names, e.g. `rake import:channel[#random,#general]`
 
 ## Contributing
 
