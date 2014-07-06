@@ -7,15 +7,21 @@ require 'redis'
 require 'dotenv'
 
 configure do
+  # Load .env vars
   Dotenv.load
-  case ENV["RACK_ENV"]
-  when "development"
+  # Disable output buffering
+  $stdout.sync = true
+  # Exclude messages that match this regex
+  set :message_exclude_regex, /^(voxbot|tacobot|pkmn|cabot|cfbot|campfirebot|\/)/i
+  
+  # Set up redis
+  case settings.environment
+  when :development
     uri = URI.parse(ENV["LOCAL_REDIS_URL"])
-  when "production"
+  when :production
     uri = URI.parse(ENV["REDISCLOUD_URL"])
   end
   $redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
-  $stdout.sync = true
 end
 
 get '/' do
@@ -35,7 +41,7 @@ end
 post '/markov' do
   response = ''
   # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
-  unless params[:text].match(/^(pkmn|cabot|cfbot|campfirebot|\/)/i) || params[:user_id] == "USLACKBOT" || params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
+  unless params[:text].match(settings.message_exclude_regex) || params[:user_id] == "USLACKBOT" || params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
     puts "Storing: #{params[:text]}"
     $redis.pipelined do
       store_markov(params[:text])
@@ -56,7 +62,7 @@ def import_history(channel_id, ts = nil)
   response = JSON.parse(request.body)
   if response['ok']
     # Find all messages that are plain messages (no subtype), are not hidden, are not from a bot (integrations, etc.) and are not cfbot commands
-    messages = response['messages'].find_all{ |m| m['subtype'].nil? && m['hidden'] != true && m['bot_id'].nil? && !m['text'].match(/^(pkmn|cabot|cfbot|campfirebot|\/)/i)  }
+    messages = response['messages'].find_all{ |m| m['subtype'].nil? && m['hidden'] != true && m['bot_id'].nil? && !m['text'].match(settings.message_exclude_regex)  }
     puts "Importing #{messages.size} messages from #{DateTime.strptime(messages.first['ts'],'%s').strftime('%c')}" if messages.size > 0
     
     $redis.pipelined do
