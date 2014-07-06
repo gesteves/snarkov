@@ -15,16 +15,16 @@ $ heroku addons:add rediscloud
 $ git push heroku master
 ```
 
-Next, you'll want to set up a Slack [outgoing webhook][ow] to send messages to snarkov. Set it up so it listens to a single channel of your choice, _don't_ set up a keyword, and set the URL to `http://[your-heroku-app].herokuapp.com/markov`. Also, copy the integration's token, you'll need it later.
+Next, you'll want to set up a Slack [outgoing webhook][ow] to send messages to snarkov. Set it up so it listens to a single channel of your choice, _don't_ set up a keyword, and set the URL to `http://[your-heroku-url]/markov` (you can find out your Heroku url with `heroku info`). Also, copy the integration's token, you'll need it later.
 
 You'll also need a Slack API token. You can get one by going to [this page][token] while logged into Slack.
 
 Finally, you'll have to set up the config vars for your Heroku app. You can set these up in the settings page for your app in the Heroku dashboard, or using the `heroku config:set` [command][cf]. The variables you'll need to set up are:
 
-* `OUTGOING_WEBHOOK_TOKEN`: the token from the outgoing web hook you'll use.
+* `OUTGOING_WEBHOOK_TOKEN`: the token from the outgoing webhook you'll use.
 * `API_TOKEN`: the Slack API token you got earlier.
-* `RESPONSE_CHANCE`: the probability, from 0 to 1, that the bot will reply back to the channel when it receives a message. 1 makes it reply every time, 0 essentially turns it off.
-* `MAX_WORDS`: the maximum number of words the bot can reply back. 
+* `RESPONSE_CHANCE`: the probability, from 0 to 1, that the bot will reply back to the channel when it receives a message. 1 makes it reply every time, 0 essentially turns it off. Set it to something sensible, like 0.1, unless you _really_ want to annoy your teammates.
+* `MAX_WORDS`: the maximum number of words the bot can reply back. Set this to something sensible, like 100.
 
 [ht]: https://toolbelt.heroku.com/
 [he]: http://www.heroku.com
@@ -48,7 +48,7 @@ After snarkov is up and running, the outgoing webhook you set up will send every
 If you have a Mac, a fun thing to do is run this in the terminal:
 
 ```
-$ curl -s http://[your-snarkov-url]/markov?token=[outgoing-webhook-token] | say -i
+$ curl -s http://[your-heroku-url]/markov?token=[outgoing-webhook-token] | say -i
 ```
 
 ## Importing channels
