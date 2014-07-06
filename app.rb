@@ -42,45 +42,19 @@ post '/markov' do
   response = ''
   # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
   unless params[:text].match(settings.message_exclude_regex) || params[:user_id] == "USLACKBOT" || params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
-    puts "Storing: #{params[:text]}"
+    puts "[LOG] Storing: #{params[:text]}"
     $redis.pipelined do
       store_markov(params[:text])
     end
     if rand <= ENV['RESPONSE_CHANCE'].to_f
-      response = { text: build_markov, link_names: 1 }.to_json
+      reply = build_markov
+      puts "[LOG] Replying: #{reply}"
+      response = { text: reply, link_names: 1 }.to_json
     end
   end
   
   status 200
   body response
-end
-
-def import_history(channel_id, ts = nil)
-  uri = "https://slack.com/api/channels.history?token=#{ENV["API_TOKEN"]}&channel=#{channel_id}&count=1000"
-  uri += "&latest=#{ts}" unless ts.nil?
-  request = HTTParty.get(uri)
-  response = JSON.parse(request.body)
-  if response['ok']
-    # Find all messages that are plain messages (no subtype), are not hidden, are not from a bot (integrations, etc.) and are not cfbot commands
-    messages = response['messages'].find_all{ |m| m['subtype'].nil? && m['hidden'] != true && m['bot_id'].nil? && !m['text'].match(settings.message_exclude_regex)  }
-    puts "Importing #{messages.size} messages from #{DateTime.strptime(messages.first['ts'],'%s').strftime('%c')}" if messages.size > 0
-    
-    $redis.pipelined do
-      messages.each do |m|
-        store_markov(m['text'])
-      end
-    end
-    
-    # If there are more messages in the API call, make another call, starting with the timestamp of the last message
-    if response['has_more'] && !messages.last['ts'].nil?
-      ts = messages.last['ts']
-      # Wait 1 second so we don't get rate limited
-      sleep 1
-      import_history(channel_id, ts)
-    end
-  else
-    puts "Error fetching channel history: #{response['error']}" unless response['error'].nil?
-  end
 end
 
 def store_markov(text)
@@ -154,6 +128,34 @@ def get_channel_id(channel_name)
     channel_id = channel["id"] unless channel.nil?
   else
     puts "Error fetching channel name: #{response['error']}" unless response['error'].nil?
-    nil
+    ''
+  end
+end
+
+def import_history(channel_id, ts = nil)
+  uri = "https://slack.com/api/channels.history?token=#{ENV["API_TOKEN"]}&channel=#{channel_id}&count=1000"
+  uri += "&latest=#{ts}" unless ts.nil?
+  request = HTTParty.get(uri)
+  response = JSON.parse(request.body)
+  if response['ok']
+    # Find all messages that are plain messages (no subtype), are not hidden, are not from a bot (integrations, etc.) and are not cfbot commands
+    messages = response['messages'].find_all{ |m| m['subtype'].nil? && m['hidden'] != true && m['bot_id'].nil? && !m['text'].match(settings.message_exclude_regex)  }
+    puts "Importing #{messages.size} messages from #{DateTime.strptime(messages.first['ts'],'%s').strftime('%c')}" if messages.size > 0
+    
+    $redis.pipelined do
+      messages.each do |m|
+        store_markov(m['text'])
+      end
+    end
+    
+    # If there are more messages in the API call, make another call, starting with the timestamp of the last message
+    if response['has_more'] && !messages.last['ts'].nil?
+      ts = messages.last['ts']
+      # Wait 1 second so we don't get rate limited
+      sleep 1
+      import_history(channel_id, ts)
+    end
+  else
+    puts "Error fetching channel history: #{response['error']}" unless response['error'].nil?
   end
 end
