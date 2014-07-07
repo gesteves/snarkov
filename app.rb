@@ -45,9 +45,7 @@ post '/markov' do
     $redis.pipelined do
       store_markov(params[:text])
     end
-    rand_num = rand
-    puts rand_num
-    if rand_num <= ENV['RESPONSE_CHANCE'].to_f
+    if rand <= ENV['RESPONSE_CHANCE'].to_f
       reply = build_markov
       puts "[LOG] Replying: #{reply}"
       response = { text: reply, link_names: 1 }.to_json
