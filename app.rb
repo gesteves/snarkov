@@ -64,6 +64,7 @@ def store_markov(text)
   words = text.split(/\s+/)
   # Ignore if phrase is less than 3 words
   unless words.size < 3
+    puts "[LOG] Storing: #{text}"
     (words.size - 2).times do |i|
       # Join the first two words as the key
       key = words[i..i+1].join(' ')
