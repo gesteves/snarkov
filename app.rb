@@ -41,7 +41,7 @@ end
 post '/markov' do
   response = ''
   # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
-  unless params[:text].match(settings.message_exclude_regex) || params[:user_id] == "USLACKBOT" || params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
+  unless params[:text].nil? || params[:text].match(settings.message_exclude_regex) || params[:user_id] == "USLACKBOT" || params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
     $redis.pipelined do
       store_markov(params[:text])
     end
