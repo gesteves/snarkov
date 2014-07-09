@@ -7,7 +7,7 @@ namespace :import do
       puts "You need to specify the name of the channels you wish to import, e.g. rake import:channel CHANNELS=\"#random\""
     else
       start_time = Time.now
-      channels = ENV["CHANNELS"].split(',')
+      channels = ENV["CHANNELS"].split(",")
       channels.each do |channel|
         puts "Importing channel #{channel.strip} to #{ENV["RACK_ENV"]} (this will take a while)"
         channel_id = get_channel_id(channel.strip)
