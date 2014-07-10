@@ -15,6 +15,8 @@ configure do
   $stdout.sync = true
   # Exclude messages that match this regex
   set :message_exclude_regex, /^(voxbot|tacobot|pkmn|cabot|cfbot|campfirebot|\/)/i
+  # Respond to messages that match this
+  set :reply_to_regex, /cfbot|campfirebot/
   
   # Set up redis
   case settings.environment
@@ -47,10 +49,13 @@ post "/markov" do
     $redis.pipelined do
       store_markov(params[:text])
     end
-    if SecureRandom.random_number <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match('cfbot')
+    if SecureRandom.random_number <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_to_regex)
       reply = build_markov
       puts "[LOG] Replying: #{reply}"
-      response = { text: reply, link_names: 1 }.to_json
+      response = { text: reply, link_names: 1 }
+      response[:username] = ENV["BOT_USERNAME"] unless ENV["BOT_USERNAME"].nil?
+      response[:icon_emoji] = ENV["BOT_ICON"] unless ENV["BOT_ICON"].nil?
+      response = response.to_json
     end
   end
   
