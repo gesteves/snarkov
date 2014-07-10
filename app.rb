@@ -47,7 +47,7 @@ post "/markov" do
     $redis.pipelined do
       store_markov(params[:text])
     end
-    if SecureRandom.random_number <= ENV["RESPONSE_CHANCE"].to_f
+    if SecureRandom.random_number <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match('cfbot')
       reply = build_markov
       puts "[LOG] Replying: #{reply}"
       response = { text: reply, link_names: 1 }.to_json
