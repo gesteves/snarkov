@@ -50,6 +50,7 @@ post "/markov" do
       store_markov(params[:text])
     end
     if SecureRandom.random_number <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_to_regex)
+      sleep 1
       reply = build_markov
       puts "[LOG] Replying: #{reply}"
       response = { text: reply, link_names: 1 }
