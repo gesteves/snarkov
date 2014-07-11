@@ -64,8 +64,15 @@ post "/markov" do
 end
 
 def store_markov(text)
-  # Downcase and remove Slack formatting, replace slack user ids with the proper username, and clean up some punctuation
-  text = text.gsub(/<@([\w]+)>/){ |m| get_slack_username($1) }.gsub(/:-?\(/, ":disappointed:").gsub(/:-?\)/, ":smiley:").gsub(/<.*?>|&lt;.*?&gt;|[\*`_<>"\(\)“”•]/, "").gsub(/\n+/, " ").gsub(/[‘’]/,"\"").downcase
+  # Horrible regex, this
+  text = text.gsub(/<@([\w]+)>/){ |m| get_slack_username($1) }
+             .gsub(/<#([\w]+)>/){ |m| get_channel_name($1) }
+             .gsub(/:-?\(/, ":disappointed:").gsub(/:-?\)/, ":smiley:")
+             .gsub(/[‘’]/,"\'")
+             .gsub(/\W_|_\W|^_|_$/, " ")
+             .gsub(/<.*?>|&lt;.*?&gt;|&lt;|&gt;|[\*`<>"\(\)“”•]/, "")
+             .gsub(/\n+/, " ")
+             .downcase
   # Split words into array
   words = text.split(/\s+/)
   # Ignore if phrase is less than 3 words
@@ -135,6 +142,21 @@ def get_channel_id(channel_name)
   if response["ok"]
     channel = response["channels"].find { |u| u["name"] == channel_name.gsub("#","") }
     channel_id = channel["id"] unless channel.nil?
+  else
+    puts "Error fetching channel id: #{response["error"]}" unless response["error"].nil?
+    ""
+  end
+end
+
+def get_channel_name(channel_id)
+  # Wait a second so we don't get rate limited
+  sleep 1
+  uri = "https://slack.com/api/channels.list?token=#{ENV["API_TOKEN"]}"
+  request = HTTParty.get(uri)
+  response = JSON.parse(request.body)
+  if response["ok"]
+    channel = response["channels"].find { |u| u["id"] == channel_id }
+    channel_name = "##{channel["name"]}" unless channel.nil?
   else
     puts "Error fetching channel name: #{response["error"]}" unless response["error"].nil?
     ""
