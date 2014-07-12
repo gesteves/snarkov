@@ -16,7 +16,7 @@ configure do
   # Exclude messages that match this regex
   set :message_exclude_regex, /^(voxbot|tacobot|pkmn|cabot|cfbot|campfirebot|\/)/i
   # Respond to messages that match this
-  set :reply_to_regex, /cfbot|campfirebot/
+  set :reply_to_regex, /cfbot|campfirebot/i
   
   # Set up redis
   case settings.environment
