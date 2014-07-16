@@ -46,17 +46,14 @@ post "/markov" do
   response = ""
   # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
   unless params[:text].nil? || params[:text].match(settings.message_exclude_regex) || params[:user_id] == "USLACKBOT" || params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
-    $redis.pipelined do
-      store_markov(params[:text])
+    # Don't store the text if someone is intentionally invoking a reply, tho
+    unless params[:text].match(settings.reply_to_regex)
+      $redis.pipelined do
+        store_markov(params[:text])
+      end
     end
     if SecureRandom.random_number <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_to_regex)
-      sleep 1
-      reply = build_markov
-      puts "[LOG] Replying: #{reply}"
-      response = { text: reply, link_names: 1 }
-      response[:username] = ENV["BOT_USERNAME"] unless ENV["BOT_USERNAME"].nil?
-      response[:icon_emoji] = ENV["BOT_ICON"] unless ENV["BOT_ICON"].nil?
-      response = response.to_json
+      response = json_response_for_slack
     end
   end
   
@@ -116,6 +113,15 @@ end
 
 def get_next_word(first_word, second_word)
   $redis.srandmember("#{first_word} #{second_word}")
+end
+
+def json_response_for_slack
+  reply = build_markov
+  puts "[LOG] Replying: #{reply}"
+  response = { text: reply, link_names: 1 }
+  response[:username] = ENV["BOT_USERNAME"] unless ENV["BOT_USERNAME"].nil?
+  response[:icon_emoji] = ENV["BOT_ICON"] unless ENV["BOT_ICON"].nil?
+  response.to_json
 end
 
 def get_slack_username(slack_id)
