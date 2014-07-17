@@ -45,6 +45,7 @@ end
 post "/markov" do
   response = ""
   # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
+  puts params
   unless params[:text].nil? || params[:text].match(settings.message_exclude_regex) || params[:user_id] == "USLACKBOT" || params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
     # Don't store the text if someone is intentionally invoking a reply, tho
     unless params[:text].match(settings.reply_to_regex)
