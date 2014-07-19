@@ -180,7 +180,7 @@ def import_history(channel_id, ts = nil)
   response = JSON.parse(request.body)
   if response["ok"]
     # Find all messages that are plain messages (no subtype), are not hidden, are not from a bot (integrations, etc.) and are not cfbot commands
-    messages = response["messages"].find_all{ |m| m["subtype"].nil? && m["hidden"] != true && m["bot_id"].nil? && !m["text"].match(settings.message_exclude_regex)  }
+    messages = response["messages"].find_all{ |m| m["subtype"].nil? && m["hidden"] != true && m["bot_id"].nil? && !m["text"].match(settings.message_exclude_regex) && !m["text"].match(settings.reply_to_regex)  }
     puts "Importing #{messages.size} messages from #{DateTime.strptime(messages.first["ts"],"%s").strftime("%c")}" if messages.size > 0
     
     $redis.pipelined do
