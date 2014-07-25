@@ -133,7 +133,7 @@ def tweet(tweet_text)
     tweet_text = tweet_text[0..138].gsub(/\s\w+\s*$/, "…") if tweet_text.size > 140
     response = access_token.post("https://api.twitter.com/1.1/statuses/update.json", { status: tweet_text })
     response_json = JSON.parse(response.body)
-    puts "[LOG] Sent tweet: http://twitter.com/#{response_json["user"]["screen_name"]}/status/#{response_json["id"]}"
+    puts "[LOG] Sent tweet: http://twitter.com/statuses/#{response_json["id"]}"
   rescue OAuth::Error
     nil
   end
