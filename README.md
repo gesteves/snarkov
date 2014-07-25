@@ -25,12 +25,14 @@ Finally, you'll have to set up the config vars for your Heroku app. You can set 
 * `API_TOKEN`: the Slack API token you got earlier.
 * `RESPONSE_CHANCE`: the probability, from 0 to 1, that the bot will reply back to the channel when it receives a message. 1 makes it reply every time, 0 essentially turns it off. Set it to something sensible, like 0.1, unless you _really_ want to annoy your teammates.
 * `MAX_WORDS`: the maximum number of words the bot can reply back. Set this to something sensible, like 100.
+* `SEND_TWEETS`: the bot will tweet out whatever it says if this variable is present. You'll have to set up a [Twitter app][ta], and fill out the `TWITTER_API_KEY`, `TWITTER_API_SECRET`, `TWITTER_TOKEN`, and `TWITTER_TOKEN_SECRET` variables for it to work.
 
 [ht]: https://toolbelt.heroku.com/
 [he]: http://www.heroku.com
 [ow]: https://slack.com/services/new/outgoing-webhook
 [token]: https://api.slack.com/#auth
 [cf]: https://devcenter.heroku.com/articles/config-vars#setting-up-config-vars-for-a-deployed-application
+[ta]: http://apps.twitter.com
 
 ## Running locally
 

@@ -54,7 +54,9 @@ post "/markov" do
       end
     end
     if SecureRandom.random_number <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_to_regex)
-      response = json_response_for_slack
+      reply = build_markov
+      response = json_response_for_slack(reply)
+      tweet(reply) unless ENV["SEND_TWEETS"].nil?
     end
   end
   
@@ -116,13 +118,23 @@ def get_next_word(first_word, second_word)
   $redis.srandmember("#{first_word} #{second_word}")
 end
 
-def json_response_for_slack
-  reply = build_markov
+def json_response_for_slack(reply)
   puts "[LOG] Replying: #{reply}"
   response = { text: reply, link_names: 1 }
   response[:username] = ENV["BOT_USERNAME"] unless ENV["BOT_USERNAME"].nil?
   response[:icon_emoji] = ENV["BOT_ICON"] unless ENV["BOT_ICON"].nil?
   response.to_json
+end
+
+def tweet(tweet_text)
+  begin
+    consumer = OAuth::Consumer.new(ENV["TWITTER_API_KEY"], ENV["TWITTER_API_SECRET"], {:site => "http://api.twitter.com"})
+    access_token = OAuth::AccessToken.new(consumer, ENV["TWITTER_TOKEN"], ENV["TWITTER_TOKEN_SECRET"])
+    tweet_text = tweet_text[0..138].gsub(/\s\w+\s*$/, '…') if tweet_text.size > 140
+    access_token.post("https://api.twitter.com/1.1/statuses/update.json", { :status => tweet_text})
+  rescue OAuth::Error
+    nil
+  end
 end
 
 def get_slack_username(slack_id)
