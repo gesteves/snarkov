@@ -11,6 +11,7 @@ GEM
       multi_xml (>= 0.5.2)
     json (1.8.1)
     multi_xml (0.5.5)
+    oauth (0.4.7)
     rack (1.5.2)
     rack-protection (1.5.3)
       rack
@@ -31,6 +32,7 @@ PLATFORMS
 DEPENDENCIES
   dotenv
   httparty
+  oauth
   redis
   sinatra
   thin
