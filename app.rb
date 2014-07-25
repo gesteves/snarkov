@@ -6,7 +6,7 @@ require "date"
 require "redis"
 require "dotenv"
 require "securerandom"
-
+require "oauth"
 
 configure do
   # Load .env vars
