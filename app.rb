@@ -128,10 +128,12 @@ end
 
 def tweet(tweet_text)
   begin
-    consumer = OAuth::Consumer.new(ENV["TWITTER_API_KEY"], ENV["TWITTER_API_SECRET"], {:site => "http://api.twitter.com"})
+    consumer = OAuth::Consumer.new(ENV["TWITTER_API_KEY"], ENV["TWITTER_API_SECRET"], { site: "http://api.twitter.com" })
     access_token = OAuth::AccessToken.new(consumer, ENV["TWITTER_TOKEN"], ENV["TWITTER_TOKEN_SECRET"])
-    tweet_text = tweet_text[0..138].gsub(/\s\w+\s*$/, '…') if tweet_text.size > 140
-    access_token.post("https://api.twitter.com/1.1/statuses/update.json", { :status => tweet_text})
+    tweet_text = tweet_text[0..138].gsub(/\s\w+\s*$/, "…") if tweet_text.size > 140
+    response = access_token.post("https://api.twitter.com/1.1/statuses/update.json", { status: tweet_text })
+    response_json = JSON.parse(response.body)
+    puts "[LOG] Sent tweet: http://twitter.com/#{response_json["user"]["screen_name"]}/status/#{response_json["id"]}"
   rescue OAuth::Error
     nil
   end
