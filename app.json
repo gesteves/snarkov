@@ -1,0 +1,13 @@
+{
+  "name": "Snarkov",
+  "description": "A Sinatra-based Markov bot for Slack.",
+  "keywords": [
+    "slack",
+    "bot",
+    "markov"
+  ],
+  "repository": "https://github.com/gesteves/snarkov",
+  "addons": [
+    "rediscloud"
+  ]
+}

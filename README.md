@@ -7,7 +7,11 @@ Snarkov is a Sinatra-based [Markov bot][mb] for [Slack][slack].
 
 ## Installation
 
-The simplest way to set up snarkov is using [Heroku][he] & Redis Cloud. Just install the [Heroku Toolbelt][ht], clone the repo, and run:
+The simplest way to set up snarkov is using [Heroku][he] & Redis Cloud. Just press this button to deploy it:
+
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+
+If you'd rather deploy it it manually, install the [Heroku Toolbelt][ht], clone the repo, and run:
 
 ```
 $ heroku create
