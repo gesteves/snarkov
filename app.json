@@ -10,9 +10,10 @@
   "addons": [
     "rediscloud"
   ],
+  "success_url": "https://github.com/gesteves/snarkov#usage",
   "env": {
     "OUTGOING_WEBHOOK_TOKEN": {
-      "description": "The token of the Slack outgoing webhook you'll use for this. Set it up at https://slack.com/services/new/outgoing-webhook",
+      "description": "The token of the Slack outgoing webhook you'll use for this. Set it up at https://slack.com/services/new/outgoing-webhook. Make sure you don't set up a keyword. You'll have to point it to this app's URL once it's deployed.",
       "required": true
     },
     "API_TOKEN": {
