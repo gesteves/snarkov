@@ -9,5 +9,46 @@
   "repository": "https://github.com/gesteves/snarkov",
   "addons": [
     "rediscloud"
-  ]
+  ],
+  "env": {
+    "OUTGOING_WEBHOOK_TOKEN": {
+      "description": "The token of the Slack outgoing webhook you'll use for this. Set it up at https://slack.com/services/new/outgoing-webhook",
+      "required": true
+    },
+    "API_TOKEN": {
+      "description": "The Slack API key. Get it at https://api.slack.com/#auth",
+      "required": true
+    },
+    "RESPONSE_CHANCE": {
+      "description": "The probability that the bot will reply whenever someone speaks in the Slack room.",
+      "required": true,
+      "value": "0.1"
+    },
+    "MAX_WORDS": {
+      "description": "The maximum length of the bot's replies.",
+      "required": true,
+      "value": "100"
+    },
+    "SEND_TWEETS": {
+      "description": "Do you want the bot to tweet everything it says? (You'll need to set up all the Twitter API stuff at https://apps.twitter.com first.)",
+      "required": true,
+      "value": "false"
+    },
+    "TWITTER_API_KEY": {
+      "description": " Twitter API key. Required if you want the bot to tweet what it says.",
+      "required": false
+    },
+    "TWITTER_API_SECRET": {
+      "description": "Twitter API secret. Required if you want the bot to tweet what it says.",
+      "required": false
+    },
+    "TWITTER_TOKEN": {
+      "description": "Twitter access token. Required if you want the bot to tweet what it says.",
+      "required": false
+    },
+    "TWITTER_TOKEN_SECRET": {
+      "description": "Twitter access token secret. Required if you want the bot to tweet what it says.",
+      "required": false
+    }
+  }
 }
