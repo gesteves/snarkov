@@ -56,7 +56,7 @@ post "/markov" do
     if SecureRandom.random_number <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_to_regex)
       reply = build_markov
       response = json_response_for_slack(reply)
-      tweet(reply) unless ENV["SEND_TWEETS"].nil?
+      tweet(reply) unless ENV["SEND_TWEETS"].nil? || ENV["SEND_TWEETS"].downcase == "false"
     end
   end
   
