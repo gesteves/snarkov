@@ -35,6 +35,7 @@ end
 get "/markov" do
   if params[:token] == ENV["OUTGOING_WEBHOOK_TOKEN"]
     status 200
+    headers "Access-Control-Allow-Origin" => "*"
     body build_markov
   else
     status 403
