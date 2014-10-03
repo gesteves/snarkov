@@ -205,8 +205,8 @@ def import_history(channel_id, ts = nil)
     end
     
     # If there are more messages in the API call, make another call, starting with the timestamp of the last message
-    if response["has_more"] && !messages.last["ts"].nil?
-      ts = messages.last["ts"]
+    if response["has_more"] && !response["messages"].last["ts"].nil?
+      ts = response["messages"].last["ts"]
       import_history(channel_id, ts)
     end
   else
