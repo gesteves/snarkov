@@ -14,7 +14,7 @@ configure do
   # Disable output buffering
   $stdout.sync = true
   # Exclude messages that match this regex
-  set :message_exclude_regex, /^(voxbot|tacobot|pkmn|cabot|cfbot|campfirebot|tbot|\/)/i
+  set :message_exclude_regex, /^(voxbot|tacobot|pkmn|cabot|cfbot|campfirebot|tbot|trebekbot\/)/i
   # Respond to messages that match this
   set :reply_to_regex, /cfbot|campfirebot/i
   
