@@ -131,6 +131,7 @@ def shut_up(minutes = 5)
   minutes = [minutes, 60].min
   if minutes > 0
     $redis.setex("bot:shush", minutes * 60, "bot:shush:true")
+    puts "[LOG] Shutting up for #{minutes}"
     if minutes == 1
       "ok, i'll shut up for #{minutes} minute"
     else
