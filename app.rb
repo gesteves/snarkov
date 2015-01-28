@@ -45,19 +45,30 @@ end
 
 post "/markov" do
   response = ""
-  # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
-  puts params
-  unless params[:text].nil? || params[:text].match(settings.message_exclude_regex) || params[:user_name].match(settings.message_exclude_regex) || params[:user_id] == "USLACKBOT" || params[:user_id] == "" || params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
-    # Don't store the text if someone is intentionally invoking a reply, tho
-    unless params[:text].match(settings.reply_to_regex)
-      $redis.pipelined do
-        store_markov(params[:text])
+  if params[:text].match(/^(cfbot|campfirebot) (mute|stfu|shush|shut up)/i)
+    time = params[:text].scan(/\d+/).first.nil? ? 5 : params[:text].scan(/\d+/).first.to_i
+    reply = shut_up(time)
+    response = json_response_for_slack(reply)
+  else
+    # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
+    unless $redis.exists("bot:shush") ||
+           params[:text].nil? ||
+           params[:text].match(settings.message_exclude_regex) ||
+           params[:user_name].match(settings.message_exclude_regex) ||
+           params[:user_id] == "USLACKBOT" ||
+           params[:user_id] == "" ||
+           params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
+      # Don't store the text if someone is intentionally invoking a reply, tho
+      unless params[:text].match(settings.reply_to_regex)
+        $redis.pipelined do
+          store_markov(params[:text])
+        end
       end
-    end
-    if SecureRandom.random_number <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_to_regex)
-      reply = build_markov
-      response = json_response_for_slack(reply)
-      tweet(reply) unless ENV["SEND_TWEETS"].nil? || ENV["SEND_TWEETS"].downcase == "false"
+      if SecureRandom.random_number <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_to_regex)
+        reply = build_markov
+        response = json_response_for_slack(reply)
+        tweet(reply) unless ENV["SEND_TWEETS"].nil? || ENV["SEND_TWEETS"].downcase == "false"
+      end
     end
   end
   
@@ -95,7 +106,7 @@ def build_markov
   # Get a random key (i.e. random pair of words) from Redis
   key = $redis.randomkey
 
-  unless key.nil? || key.empty?
+  unless key.nil? || key.empty? || key == "bot:shush:true"
     # Split the key into the two words and add them to the phrase array
     key = key.split(" ")
     first_word = key.first
@@ -113,6 +124,18 @@ def build_markov
     end
   end
   phrase.join(" ").strip
+end
+
+def shut_up(minutes = 5)
+  minutes = [minutes, 60].min
+  if minutes > 0
+    $redis.setex("bot:shush", minutes * 60, "bot:shush:true")
+    if minutes == 1
+      "ok, i'll shut up for #{minutes} minute"
+    else
+      "ok, i'll shut up for #{minutes} minutes"
+    end
+  end
 end
 
 def get_next_word(first_word, second_word)
