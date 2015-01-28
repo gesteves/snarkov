@@ -45,30 +45,31 @@ end
 
 post "/markov" do
   response = ""
-  if params[:text].match(/^(cfbot|campfirebot) (mute|stfu|shush|shut up)/i)
+  if params[:text].match(/^(markov|snarkov|cfbot|campfirebot) (mute|stfu|shush|shut up)/i)
     time = params[:text].scan(/\d+/).first.nil? ? 5 : params[:text].scan(/\d+/).first.to_i
     reply = shut_up(time)
     response = json_response_for_slack(reply)
-  else
-    # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
-    unless $redis.exists("bot:shush") ||
-           params[:text].nil? ||
-           params[:text].match(settings.message_exclude_regex) ||
-           params[:user_name].match(settings.message_exclude_regex) ||
-           params[:user_id] == "USLACKBOT" ||
-           params[:user_id] == "" ||
-           params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
-      # Don't store the text if someone is intentionally invoking a reply, tho
-      unless params[:text].match(settings.reply_to_regex)
-        $redis.pipelined do
-          store_markov(params[:text])
-        end
+  end
+
+  # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
+  unless params[:text].nil? ||
+         params[:text].match(settings.message_exclude_regex) ||
+         params[:user_name].match(settings.message_exclude_regex) ||
+         params[:user_id] == "USLACKBOT" ||
+         params[:user_id] == "" ||
+         params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
+    # Don't store the text if someone is intentionally invoking a reply, tho
+    unless params[:text].match(settings.reply_to_regex)
+      $redis.pipelined do
+        store_markov(params[:text])
       end
-      if SecureRandom.random_number <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_to_regex)
-        reply = build_markov
-        response = json_response_for_slack(reply)
-        tweet(reply) unless ENV["SEND_TWEETS"].nil? || ENV["SEND_TWEETS"].downcase == "false"
-      end
+    end
+
+    # Reply if the bot isn't shushed AND either the random number is under the threshold OR the bot was invoked
+    if !$redis.exists("bot:shush") && (SecureRandom.random_number <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_to_regex))
+      reply = build_markov
+      response = json_response_for_slack(reply)
+      tweet(reply) unless ENV["SEND_TWEETS"].nil? || ENV["SEND_TWEETS"].downcase == "false"
     end
   end
   
