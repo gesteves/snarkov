@@ -5,7 +5,6 @@ require "httparty"
 require "date"
 require "redis"
 require "dotenv"
-require "securerandom"
 require "oauth"
 
 configure do
@@ -76,7 +75,7 @@ post "/markov" do
     end
 
     # Reply if the bot isn't shushed AND either the random number is under the threshold OR the bot was invoked
-    if !$redis.exists("bot:shush") && params[:user_id] != "WEBFORM" && (SecureRandom.random_number <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_to_regex))
+    if !$redis.exists("bot:shush") && params[:user_id] != "WEBFORM" && (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_to_regex))
       reply = build_markov
       response = json_response_for_slack(reply)
       tweet(reply) unless ENV["SEND_TWEETS"].nil? || ENV["SEND_TWEETS"].downcase == "false"
