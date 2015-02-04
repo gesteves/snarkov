@@ -93,12 +93,14 @@ def store_markov(text)
     # Horrible regex, this
     text = t.gsub(/<@([\w]+)>/){ |m| get_slack_username($1) }
             .gsub(/<#([\w]+)>/){ |m| get_channel_name($1) }
+            .gsub(/<!([\w]+)>:?/, "")
             .gsub(/:-?\(/, ":disappointed:").gsub(/:-?\)/, ":smiley:")
             .gsub(/[‘’]/,"\'")
             .gsub(/\W_|_\W|^_|_$/, " ")
             .gsub(/<.*?>|&lt;.*?&gt;|&lt;|&gt;|[\*`<>"\(\)“”•]/, "")
             .gsub(/\n+/, " ")
             .downcase
+            .strip
     # Split words into array
     words = text.split(/\s+/)
     # Ignore if phrase is less than 3 words
