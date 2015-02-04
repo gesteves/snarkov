@@ -106,6 +106,7 @@ def store_markov(text)
       key = words[i..i+1].join(" ")
       # And the third as a value
       value = words[i+2]
+      $redis.sadd("snarkov:initial_words", key) if i == 0
       $redis.sadd(key, value)
     end
   end
@@ -114,13 +115,13 @@ end
 def build_markov
   phrase = []
   # Get a random key (i.e. random pair of words) from Redis
-  key = $redis.randomkey
+  initial_words = $redis.srandmember("snarkov:initial_words")
 
-  unless key.nil? || key.empty? || key == "bot:shush:true"
+  unless initial_words.nil?
     # Split the key into the two words and add them to the phrase array
-    key = key.split(" ")
-    first_word = key.first
-    second_word = key.last
+    initial_words = initial_words.split(" ")
+    first_word = initial_words.first
+    second_word = initial_words.last
     phrase << first_word
     phrase << second_word
 
@@ -136,10 +137,14 @@ def build_markov
   phrase.join(" ").strip
 end
 
+def get_next_word(first_word, second_word)
+  $redis.srandmember("#{first_word} #{second_word}")
+end
+
 def shut_up(minutes = 5)
   minutes = [minutes, 60].min
   if minutes > 0
-    $redis.setex("bot:shush", minutes * 60, "bot:shush:true")
+    $redis.setex("bot:shush", minutes * 60, "snarkov:shush:true")
     puts "[LOG] Shutting up: #{minutes} minutes"
     if minutes == 1
       "ok, i'll shut up for #{minutes} minute"
@@ -147,10 +152,6 @@ def shut_up(minutes = 5)
       "ok, i'll shut up for #{minutes} minutes"
     end
   end
-end
-
-def get_next_word(first_word, second_word)
-  $redis.srandmember("#{first_word} #{second_word}")
 end
 
 def json_response_for_slack(reply)
@@ -175,8 +176,6 @@ def tweet(tweet_text)
 end
 
 def get_slack_username(slack_id)
-  # Wait a second so we don't get rate limited
-  sleep 1
   username = ""
   uri = "https://slack.com/api/users.list?token=#{ENV["API_TOKEN"]}"
   request = HTTParty.get(uri)
@@ -191,8 +190,6 @@ def get_slack_username(slack_id)
 end
 
 def get_channel_id(channel_name)
-  # Wait a second so we don't get rate limited
-  sleep 1
   uri = "https://slack.com/api/channels.list?token=#{ENV["API_TOKEN"]}"
   request = HTTParty.get(uri)
   response = JSON.parse(request.body)
@@ -206,8 +203,6 @@ def get_channel_id(channel_name)
 end
 
 def get_channel_name(channel_id)
-  # Wait a second so we don't get rate limited
-  sleep 1
   uri = "https://slack.com/api/channels.list?token=#{ENV["API_TOKEN"]}"
   request = HTTParty.get(uri)
   response = JSON.parse(request.body)
@@ -221,8 +216,6 @@ def get_channel_name(channel_id)
 end
 
 def import_history(channel_id, ts = nil)
-  # Wait 1 second so we don"t get rate limited
-  sleep 1
   uri = "https://slack.com/api/channels.history?token=#{ENV["API_TOKEN"]}&channel=#{channel_id}&count=1000"
   uri += "&latest=#{ts}" unless ts.nil?
   request = HTTParty.get(uri)
