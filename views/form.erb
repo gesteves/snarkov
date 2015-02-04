@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+</head>
+<body>
+  <form action="/markov" method="post">
+    <input type="hidden" name="token" value="<%= params[:token] %>">
+    <input type="hidden" name="user_name" value="form">
+    <input type="hidden" name="user_id" value="form">
+    <textarea placeholder="Enter your funny text here." name="text" rows="25" cols="100"></textarea>
+    <p><input type="submit" value="Markovize" /></p>
+  </form>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script>
+  var $form = $('form');
+  $form.on('submit', function () {
+    var url = $form.attr('action');
+    var data = $form.serialize();
+    $.post(url, data, function () {
+      $form.find('textarea').val('');
+    });
+    return false;
+  });
+  </script>
+</body>
+</html>

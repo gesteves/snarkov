@@ -43,6 +43,16 @@ get "/markov" do
   end
 end
 
+get "/form" do
+  if params[:token] == ENV["OUTGOING_WEBHOOK_TOKEN"]
+    status 200
+    erb :form
+  else
+    status 403
+    body "Nope."
+  end
+end
+
 post "/markov" do
   response = ""
   if params[:text].match(/^(markov|snarkov|cfbot|campfirebot) (mute|stfu|shush|shut up)/i)
