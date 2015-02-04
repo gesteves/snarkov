@@ -106,6 +106,7 @@ def store_markov(text)
       key = words[i..i+1].join(" ")
       # And the third as a value
       value = words[i+2]
+      # If it's the first pair of words, store in special set
       $redis.sadd("snarkov:initial_words", key) if i == 0
       $redis.sadd(key, value)
     end
@@ -114,7 +115,7 @@ end
 
 def build_markov
   phrase = []
-  # Get a random key (i.e. random pair of words) from Redis
+  # Get a random pair of words from Redis
   initial_words = $redis.srandmember("snarkov:initial_words")
 
   unless initial_words.nil?
