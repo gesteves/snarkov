@@ -75,7 +75,7 @@ post "/markov" do
     end
 
     # Reply if the bot isn't shushed AND either the random number is under the threshold OR the bot was invoked
-    if !$redis.exists("snarkov:shush:true") && params[:user_id] != "WEBFORM" && (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_to_regex))
+    if !$redis.exists("snarkov:shush") && params[:user_id] != "WEBFORM" && (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_to_regex))
       reply = build_markov
       response = json_response_for_slack(reply)
       tweet(reply) unless ENV["SEND_TWEETS"].nil? || ENV["SEND_TWEETS"].downcase == "false"
@@ -151,7 +151,7 @@ end
 def shut_up(minutes = 5)
   minutes = [minutes, 60].min
   if minutes > 0
-    $redis.setex("bot:shush", minutes * 60, "snarkov:shush:true")
+    $redis.setex("snarkov:shush", minutes * 60, "true")
     puts "[LOG] Shutting up: #{minutes} minutes"
     if minutes == 1
       "ok, i'll shut up for #{minutes} minute"
