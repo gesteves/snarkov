@@ -91,7 +91,7 @@ def store_markov(text)
   sentences = text.split(/\.\s+/)
   sentences.each do |t|
     # Horrible regex, this
-    text = t.gsub(/<@([\w]+)>/){ |m| get_slack_username($1) }
+    text = t.gsub(/<@([\w]+)>:?/){ |m| get_slack_username($1) }
             .gsub(/<#([\w]+)>/){ |m| get_channel_name($1) }
             .gsub(/<!([\w]+)>:?/, "")
             .gsub(/:-?\(/, ":disappointed:").gsub(/:-?\)/, ":smiley:")
@@ -189,7 +189,14 @@ def get_slack_username(slack_id)
   response = JSON.parse(request.body)
   if response["ok"]
     user = response["members"].find { |u| u["id"] == slack_id }
-    username = "@#{user["name"]}" unless user.nil?
+    unless user.nil?
+      if !user["profile"].nil? && !user["profile"]["first_name"].nil?
+        username = user["profile"]["first_name"]
+      else
+        username = user["name"]
+      end
+    end
+
   else
     puts "Error fetching username: #{response["error"]}" unless response["error"].nil?
   end
@@ -219,11 +226,13 @@ def get_channel_id(channel_name)
     channel_id = channel["id"] unless channel.nil?
   else
     puts "Error fetching channel id: #{response["error"]}" unless response["error"].nil?
-    ""
+    channel_id = ""
   end
+  channel_id
 end
 
 def get_channel_name(channel_id)
+  channel_name = ""
   uri = "https://slack.com/api/channels.list?token=#{ENV["API_TOKEN"]}"
   request = HTTParty.get(uri)
   response = JSON.parse(request.body)
@@ -232,8 +241,8 @@ def get_channel_name(channel_id)
     channel_name = "##{channel["name"]}" unless channel.nil?
   else
     puts "Error fetching channel name: #{response["error"]}" unless response["error"].nil?
-    ""
   end
+  channel_name
 end
 
 def import_history(channel_id, ts = nil, user_id = nil)
@@ -243,7 +252,7 @@ def import_history(channel_id, ts = nil, user_id = nil)
   response = JSON.parse(request.body)
   if response["ok"]
     # Find all messages that are plain messages (no subtype), are not hidden, are not from a bot (integrations, etc.) and are not cfbot commands
-    messages = response["messages"].find_all{ |m| m["subtype"].nil? && m["hidden"] != true && m["bot_id"].nil? && !m["user"].nil? && !m["text"].match(settings.message_exclude_regex) }
+    messages = response["messages"].find_all{ |m| m["subtype"].nil? && m["hidden"] != true && m["bot_id"].nil? && !m["user"].nil? && !m["text"].match(settings.reply_to_regex) && !m["text"].match(settings.message_exclude_regex) }
     # Filter by user id, if necessary
     messages = messages.find_all{ |m| m["user"] == user_id } unless user_id.nil?
 

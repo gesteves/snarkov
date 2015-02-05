@@ -8,7 +8,7 @@ namespace :import do
     else
       start_time = Time.now
       channels = ENV["CHANNELS"].split(",")
-      user_id = get_slack_user_id(ENV["USERNAME"])
+      user_id = get_slack_user_id(ENV["USERNAME"]) unless ENV["USERNAME"].nil?
       channels.each do |channel|
         puts "Importing channel #{channel.strip} to #{ENV["RACK_ENV"]} (this will take a while)"
         channel_id = get_channel_id(channel.strip)
