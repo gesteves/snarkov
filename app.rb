@@ -33,9 +33,14 @@ end
 
 get "/markov" do
   if params[:token] == ENV["OUTGOING_WEBHOOK_TOKEN"]
+    count = params[:count].nil? ? 1 : [params[:count].to_i, 100].min
+    body = []
+    count.times do
+      body << build_markov
+    end
     status 200
     headers "Access-Control-Allow-Origin" => "*"
-    body build_markov
+    body body.join("\n")
   else
     status 403
     body "Nope."
