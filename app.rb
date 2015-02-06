@@ -93,7 +93,7 @@ end
 
 def store_markov(text)
   # Split long text into sentences
-  sentences = text.split(/\.\s+/)
+  sentences = text.split(/\.\s+|\n+/)
   sentences.each do |t|
     # Horrible regex, this
     text = t.gsub(/<@([\w]+)>:?/){ |m| get_slack_username($1) }
