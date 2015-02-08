@@ -74,15 +74,27 @@ post "/markov" do
          params[:user_id] == "USLACKBOT" ||
          params[:user_id] == "" ||
          params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
-    # Don't store the text if someone is intentionally invoking a reply, tho
-    unless params[:text].match(settings.reply_regex)
-      $redis.pipelined do
-        store_markov(params[:text])
+
+    # Store the text if someone is not manually invoking a reply
+    # and if the selected user is defined and matches
+    if !ENV["SLACK_USER"].nil?
+      if !params[:text].match(settings.reply_regex) && (ENV["SLACK_USER"] == params[:user_name] || ENV["SLACK_USER"] == params[:user_id])
+        $redis.pipelined do
+          store_markov(params[:text])
+        end
+      end
+    else
+      if !params[:text].match(settings.reply_regex)
+        $redis.pipelined do
+          store_markov(params[:text])
+        end
       end
     end
 
     # Reply if the bot isn't shushed AND either the random number is under the threshold OR the bot was invoked
-    if !$redis.exists("snarkov:shush") && params[:user_id] != "WEBFORM" && (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_regex))
+    if !$redis.exists("snarkov:shush") &&
+       params[:user_id] != "WEBFORM" &&
+       (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_regex))
       reply = build_markov
       response = json_response_for_slack(reply)
       tweet(reply) unless ENV["SEND_TWEETS"].nil? || ENV["SEND_TWEETS"].downcase == "false"
