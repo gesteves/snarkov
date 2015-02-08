@@ -30,6 +30,21 @@
       "required": true,
       "value": "100"
     },
+    "REPLY_REGEX": {
+      "description": "The bot will reply to messages matching this regex",
+      "required": true,
+      "value": "(sn|m)arkov"
+    },
+    "IGNORE_REGEX": {
+      "description": "The bot will not store messages matching this regex",
+      "required": true,
+      "value": "(sn|m)arkov"
+    },
+    "IGNORE_REGEX": {
+      "description": "The bot will mute if this message is received",
+      "required": true,
+      "value": "^(sn|m)arkov mute"
+    },
     "SEND_TWEETS": {
       "description": "Do you want the bot to tweet everything it says? (You'll need to set up all the Twitter API stuff at https://apps.twitter.com first.)",
       "required": true,

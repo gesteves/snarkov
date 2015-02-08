@@ -13,9 +13,11 @@ configure do
   # Disable output buffering
   $stdout.sync = true
   # Exclude messages that match this regex
-  set :message_exclude_regex, /^(voxbot|tacobot|pkmn|cabot|cfbot|campfirebot|tbot|trebekbot|\/)/i
+  set :ignore_regex, Regexp.new(ENV["IGNORE_REGEX"], "i")
   # Respond to messages that match this
-  set :reply_to_regex, /cfbot|campfirebot/i
+  set :reply_regex, Regexp.new(ENV["REPLY_REGEX"], "i")
+  # Mute if this message is received
+  set :mute_regex, Regexp.new(ENV["MUTE_REGEX"], "i")
   
   # Set up redis
   case settings.environment
@@ -59,7 +61,7 @@ end
 
 post "/markov" do
   response = ""
-  if params[:text].match(/^(markov|snarkov|cfbot|campfirebot) (mute|stfu|shush|shut up)/i)
+  if params[:text].match(settings.mute_regex)
     time = params[:text].scan(/\d+/).first.nil? ? 5 : params[:text].scan(/\d+/).first.to_i
     reply = shut_up(time)
     response = json_response_for_slack(reply)
@@ -67,20 +69,20 @@ post "/markov" do
 
   # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
   unless params[:text].nil? ||
-         params[:text].match(settings.message_exclude_regex) ||
-         params[:user_name].match(settings.message_exclude_regex) ||
+         params[:text].match(settings.ignore_regex) ||
+         params[:user_name].match(settings.ignore_regex) ||
          params[:user_id] == "USLACKBOT" ||
          params[:user_id] == "" ||
          params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
     # Don't store the text if someone is intentionally invoking a reply, tho
-    unless params[:text].match(settings.reply_to_regex)
+    unless params[:text].match(settings.reply_regex)
       $redis.pipelined do
         store_markov(params[:text])
       end
     end
 
     # Reply if the bot isn't shushed AND either the random number is under the threshold OR the bot was invoked
-    if !$redis.exists("snarkov:shush") && params[:user_id] != "WEBFORM" && (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_to_regex))
+    if !$redis.exists("snarkov:shush") && params[:user_id] != "WEBFORM" && (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_regex))
       reply = build_markov
       response = json_response_for_slack(reply)
       tweet(reply) unless ENV["SEND_TWEETS"].nil? || ENV["SEND_TWEETS"].downcase == "false"
@@ -257,7 +259,7 @@ def import_history(channel_id, ts = nil, user_id = nil)
   response = JSON.parse(request.body)
   if response["ok"]
     # Find all messages that are plain messages (no subtype), are not hidden, are not from a bot (integrations, etc.) and are not cfbot commands
-    messages = response["messages"].find_all{ |m| m["subtype"].nil? && m["hidden"] != true && m["bot_id"].nil? && !m["user"].nil? && !m["text"].match(settings.reply_to_regex) && !m["text"].match(settings.message_exclude_regex) }
+    messages = response["messages"].find_all{ |m| m["subtype"].nil? && m["hidden"] != true && m["bot_id"].nil? && !m["user"].nil? && !m["text"].match(settings.reply_regex) && !m["text"].match(settings.ignore_regex) }
     # Filter by user id, if necessary
     messages = messages.find_all{ |m| m["user"] == user_id } unless user_id.nil?
 
