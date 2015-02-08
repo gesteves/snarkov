@@ -40,7 +40,7 @@
       "required": true,
       "value": "(sn|m)arkov"
     },
-    "IGNORE_REGEX": {
+    "MUTE_REGEX": {
       "description": "The bot will mute if this message is received",
       "required": true,
       "value": "^(sn|m)arkov mute"
