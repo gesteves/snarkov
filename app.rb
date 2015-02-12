@@ -112,7 +112,7 @@ def store_markov(text)
     # Horrible regex, this
     text = t.gsub(/<@([\w]+)>:?/){ |m| get_slack_name_from_id($1) }
             .gsub(/<#([\w]+)>/){ |m| get_channel_name($1) }
-            .gsub(/@(\w+)/){ |m| get_slack_name_from_username(m) }
+            .gsub(/@\w+/){ |m| get_slack_name_from_username(m) }
             .gsub(/<!([\w]+)>:?/, "")
             .gsub(/:-?\(/, ":disappointed:").gsub(/:-?\)/, ":smiley:")
             .gsub(/[‘’]/,"\'")
@@ -224,7 +224,7 @@ def get_slack_name_from_id(slack_id)
 end
 
 def get_slack_name_from_username(username)
-  name = "@#{username}"
+  name = username
   uri = "https://slack.com/api/users.list?token=#{ENV["API_TOKEN"]}"
   request = HTTParty.get(uri)
   response = JSON.parse(request.body)
