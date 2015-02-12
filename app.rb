@@ -110,15 +110,16 @@ def store_markov(text)
   sentences = text.split(/\.\s+|\n+/)
   sentences.each do |t|
     # Horrible regex, this
-    text = t.gsub(/<@([\w]+)>:?/){ |m| get_slack_name_from_id($1) }
+    text = t.gsub(/<@([\w]+)>:?/){ |m| get_slack_name($1) }
             .gsub(/<#([\w]+)>/){ |m| get_channel_name($1) }
-            .gsub(/@\w+/){ |m| get_slack_name_from_username(m) }
-            .gsub(/<!([\w]+)>:?/, "")
-            .gsub(/:-?\(/, ":disappointed:").gsub(/:-?\)/, ":smiley:")
+            .gsub(/<.*?>/, "")
+            .gsub(/:-?\(/, ":disappointed:")
+            .gsub(/:-?\)/, ":smiley:")
+            .gsub(/;-?\)/, ":wink:")
             .gsub(/[‘’]/,"\'")
-            .gsub(/\W_|_\W|^_|_$/, " ")
-            .gsub(/<.*?>|&lt;.*?&gt;|&lt;|&gt;|[\*`<>"\(\)“”•]/, "")
-            .gsub(/\n+/, " ")
+            .gsub(/\s_|_\s|^_|_$/, " ")
+            .gsub(/\s\(|\)\s|^\(|\)$/, " ")
+            .gsub(/&lt;.*?&gt;|&lt;|&gt;|[\*`<>"“”•]/, "")
             .downcase
             .strip
     # Split words into array
@@ -202,7 +203,7 @@ def tweet(tweet_text)
   end
 end
 
-def get_slack_name_from_id(slack_id)
+def get_slack_name(slack_id)
   username = ""
   uri = "https://slack.com/api/users.list?token=#{ENV["API_TOKEN"]}"
   request = HTTParty.get(uri)
@@ -221,24 +222,6 @@ def get_slack_name_from_id(slack_id)
     puts "Error fetching user: #{response["error"]}" unless response["error"].nil?
   end
   username
-end
-
-def get_slack_name_from_username(username)
-  name = username
-  uri = "https://slack.com/api/users.list?token=#{ENV["API_TOKEN"]}"
-  request = HTTParty.get(uri)
-  response = JSON.parse(request.body)
-  if response["ok"]
-    user = response["members"].find { |u| u["name"] == username }
-    unless user.nil?
-      if !user["profile"].nil? && !user["profile"]["first_name"].nil?
-        name = user["profile"]["first_name"]
-      end
-    end
-  else
-    puts "Error fetching user: #{response["error"]}" unless response["error"].nil?
-  end
-  name
 end
 
 def get_slack_user_id(username)
