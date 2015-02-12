@@ -110,8 +110,9 @@ def store_markov(text)
   sentences = text.split(/\.\s+|\n+/)
   sentences.each do |t|
     # Horrible regex, this
-    text = t.gsub(/<@([\w]+)>:?/){ |m| get_slack_username($1) }
+    text = t.gsub(/<@([\w]+)>:?/){ |m| get_slack_name_from_id($1) }
             .gsub(/<#([\w]+)>/){ |m| get_channel_name($1) }
+            .gsub(/@(\w+)/){ |m| get_slack_name_from_username(m) }
             .gsub(/<!([\w]+)>:?/, "")
             .gsub(/:-?\(/, ":disappointed:").gsub(/:-?\)/, ":smiley:")
             .gsub(/[‘’]/,"\'")
@@ -201,7 +202,7 @@ def tweet(tweet_text)
   end
 end
 
-def get_slack_username(slack_id)
+def get_slack_name_from_id(slack_id)
   username = ""
   uri = "https://slack.com/api/users.list?token=#{ENV["API_TOKEN"]}"
   request = HTTParty.get(uri)
@@ -217,9 +218,27 @@ def get_slack_username(slack_id)
     end
 
   else
-    puts "Error fetching username: #{response["error"]}" unless response["error"].nil?
+    puts "Error fetching user: #{response["error"]}" unless response["error"].nil?
   end
   username
+end
+
+def get_slack_name_from_username(username)
+  name = "@#{username}"
+  uri = "https://slack.com/api/users.list?token=#{ENV["API_TOKEN"]}"
+  request = HTTParty.get(uri)
+  response = JSON.parse(request.body)
+  if response["ok"]
+    user = response["members"].find { |u| u["name"] == username }
+    unless user.nil?
+      if !user["profile"].nil? && !user["profile"]["first_name"].nil?
+        name = user["profile"]["first_name"]
+      end
+    end
+  else
+    puts "Error fetching user: #{response["error"]}" unless response["error"].nil?
+  end
+  name
 end
 
 def get_slack_user_id(username)
