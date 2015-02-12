@@ -112,7 +112,7 @@ def store_markov(text)
     # Horrible regex, this
     text = t.gsub(/<@([\w]+)>:?/){ |m| get_slack_name($1) }
             .gsub(/<#([\w]+)>/){ |m| get_channel_name($1) }
-            .gsub(/<.*?>/, "")
+            .gsub(/<.*?>:?/, "")
             .gsub(/:-?\(/, ":disappointed:")
             .gsub(/:-?\)/, ":smiley:")
             .gsub(/;-?\)/, ":wink:")
