@@ -60,48 +60,53 @@ get "/form" do
 end
 
 post "/markov" do
-  response = ""
-  if params[:token] == ENV["OUTGOING_WEBHOOK_TOKEN"] &&
-     params[:user_id] != "USLACKBOT" &&
-     !params[:text].nil? &&
-     params[:text].match(settings.mute_regex)
-    time = params[:text].scan(/\d+/).first.nil? ? 5 : params[:text].scan(/\d+/).first.to_i
-    reply = shut_up(time)
-    response = json_response_for_slack(reply)
-  end
-
-  # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
-  unless params[:text].nil? ||
-         params[:text].match(settings.ignore_regex) ||
-         params[:user_name].match(settings.ignore_regex) ||
-         params[:user_id] == "USLACKBOT" ||
-         params[:user_id] == "" ||
-         params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
-
-    # Store the text if someone is not manually invoking a reply
-    # and if the selected user is defined and matches
-    if !ENV["SLACK_USER"].nil?
-      if !params[:text].match(settings.reply_regex) && (ENV["SLACK_USER"] == params[:user_name] || ENV["SLACK_USER"] == params[:user_id])
-        $redis.pipelined do
-          store_markov(params[:text])
-        end
-      end
-    else
-      if !params[:text].match(settings.reply_regex)
-        $redis.pipelined do
-          store_markov(params[:text])
-        end
-      end
-    end
-
-    # Reply if the bot isn't shushed AND either the random number is under the threshold OR the bot was invoked
-    if !$redis.exists("snarkov:shush") &&
-       params[:user_id] != "WEBFORM" &&
-       (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_regex))
-      reply = build_markov
+  begin
+    response = ""
+    if params[:token] == ENV["OUTGOING_WEBHOOK_TOKEN"] &&
+       params[:user_id] != "USLACKBOT" &&
+       !params[:text].nil? &&
+       params[:text].match(settings.mute_regex)
+      time = params[:text].scan(/\d+/).first.nil? ? 5 : params[:text].scan(/\d+/).first.to_i
+      reply = shut_up(time)
       response = json_response_for_slack(reply)
-      tweet(reply) unless ENV["SEND_TWEETS"].nil? || ENV["SEND_TWEETS"].downcase == "false"
     end
+
+    # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
+    unless params[:text].nil? ||
+           params[:text].match(settings.ignore_regex) ||
+           params[:user_name].match(settings.ignore_regex) ||
+           params[:user_id] == "USLACKBOT" ||
+           params[:user_id] == "" ||
+           params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
+
+      # Store the text if someone is not manually invoking a reply
+      # and if the selected user is defined and matches
+      if !ENV["SLACK_USER"].nil?
+        if !params[:text].match(settings.reply_regex) && (ENV["SLACK_USER"] == params[:user_name] || ENV["SLACK_USER"] == params[:user_id])
+          $redis.pipelined do
+            store_markov(params[:text])
+          end
+        end
+      else
+        if !params[:text].match(settings.reply_regex)
+          $redis.pipelined do
+            store_markov(params[:text])
+          end
+        end
+      end
+
+      # Reply if the bot isn't shushed AND either the random number is under the threshold OR the bot was invoked
+      if !$redis.exists("snarkov:shush") &&
+         params[:user_id] != "WEBFORM" &&
+         (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_regex))
+        reply = build_markov
+        response = json_response_for_slack(reply)
+        tweet(reply) unless ENV["SEND_TWEETS"].nil? || ENV["SEND_TWEETS"].downcase == "false"
+      end
+    end
+  rescue
+    puts "[ERROR] #{e}"
+    response = ""
   end
   
   status 200
