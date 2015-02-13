@@ -61,7 +61,10 @@ end
 
 post "/markov" do
   response = ""
-  if params[:text].match(settings.mute_regex)
+  if params[:token] == ENV["OUTGOING_WEBHOOK_TOKEN"] &&
+     params[:user_id] != "USLACKBOT" &&
+     !params[:text].nil? &&
+     params[:text].match(settings.mute_regex)
     time = params[:text].scan(/\d+/).first.nil? ? 5 : params[:text].scan(/\d+/).first.to_i
     reply = shut_up(time)
     response = json_response_for_slack(reply)
