@@ -274,9 +274,10 @@ def get_channel_name(channel_id)
   channel_name
 end
 
-def import_history(channel_id, ts = nil, user_id = nil)
+def import_history(channel_id, latest = nil, user_id = nil, oldest = nil)
   uri = "https://slack.com/api/channels.history?token=#{ENV["API_TOKEN"]}&channel=#{channel_id}&count=1000"
-  uri += "&latest=#{ts}" unless ts.nil?
+  uri += "&latest=#{latest}" unless latest.nil?
+  uri += "&oldest=#{oldest}" unless oldest.nil?
   request = HTTParty.get(uri)
   response = JSON.parse(request.body)
   if response["ok"]
@@ -296,8 +297,8 @@ def import_history(channel_id, ts = nil, user_id = nil)
 
     # If there are more messages in the API call, make another call, starting with the timestamp of the last message
     if response["has_more"] && !response["messages"].last["ts"].nil?
-      ts = response["messages"].last["ts"]
-      import_history(channel_id, ts, user_id)
+      latest = response["messages"].last["ts"]
+      import_history(channel_id, latest, user_id, oldest)
     end
   else
     puts "Error fetching channel history: #{response["error"]}" unless response["error"].nil?
