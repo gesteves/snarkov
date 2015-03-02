@@ -66,7 +66,7 @@ post "/markov" do
        params[:user_id] != "USLACKBOT" &&
        !params[:text].nil? &&
        params[:text].match(settings.mute_regex)
-      time = params[:text].scan(/\d+/).first.nil? ? 5 : params[:text].scan(/\d+/).first.to_i
+      time = params[:text].scan(/\d+/).first.nil? ? 60 : params[:text].scan(/\d+/).first.to_i
       reply = shut_up(time)
       response = json_response_for_slack(reply)
     end
@@ -177,8 +177,8 @@ def get_next_word(first_word, second_word)
   $redis.srandmember("#{first_word} #{second_word}")
 end
 
-def shut_up(minutes = 5)
-  minutes = [minutes, 60].min
+def shut_up(minutes = 60)
+  minutes = [minutes, 60*24].min
   if minutes > 0
     $redis.setex("snarkov:shush", minutes * 60, "true")
     puts "[LOG] Shutting up: #{minutes} minutes"
