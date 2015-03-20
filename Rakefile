@@ -23,3 +23,7 @@ namespace :import do
     end
   end
 end
+
+task :tweet do
+  tweet(build_markov)
+end
