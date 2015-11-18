@@ -2,7 +2,7 @@
 
 Snarkov is a Sinatra-based [Markov bot][mb] for [Slack][slack].
 
-![](http://i.imgur.com/lkvopH8.png)
+![](http://i.imgur.com/BhQhyd1.png)
 
 [mb]: http://stackoverflow.com/questions/5306729/how-do-markov-chain-chatbots-work
 [slack]: https://slack.com
