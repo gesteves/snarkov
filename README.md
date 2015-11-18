@@ -67,17 +67,25 @@ To populate your local redis for dev/testing, use:
 $ rake import:channel CHANNELS='#channel-name'
 ```
 
-To populate redis in production, copy the `REDISCLOUD_URL` variable from Heroku into your `.env` file, and then run:
+To populate redis in production, run:
 
 ```
-$ rake import:channel CHANNELS='#channel-name' RACK_ENV=production
+$ heroku run rake import:channel CHANNELS='#channel-name'
 ```
 
 The `import:channel` task takes a single channel name, or a comma-separated list of channel names, e.g.: 
 
 ```
-$ rake import:channel CHANNELS='#random,#general'
+$ heroku run rake import:channel CHANNELS='#random,#general'
 ```
+
+If you want to import a channel's history going back only a certain number of days, you can add a `DAYS` option. For example:
+
+```
+$ heroku run rake import:channel CHANNELS='#random,#general' DAYS=5
+```
+
+This will import the last 5 days of chat history from the #random and #general channels.
 
 ## Contributing
 
