@@ -18,7 +18,7 @@ configure do
   set :reply_regex, Regexp.new(ENV["REPLY_REGEX"], "i")
   # Mute if this message is received
   set :mute_regex, Regexp.new(ENV["MUTE_REGEX"], "i")
-  
+
   # Set up redis
   case settings.environment
   when :development
@@ -101,14 +101,13 @@ post "/markov" do
          (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_regex))
         reply = build_markov
         response = json_response_for_slack(reply)
-        tweet(reply) unless ENV["SEND_TWEETS"].nil? || ENV["SEND_TWEETS"].downcase == "false"
       end
     end
   rescue
     puts "[ERROR] #{e}"
     response = ""
   end
-  
+
   status 200
   body response
 end
@@ -198,19 +197,6 @@ def json_response_for_slack(reply)
   response.to_json
 end
 
-def tweet(tweet_text)
-  begin
-    consumer = OAuth::Consumer.new(ENV["TWITTER_API_KEY"], ENV["TWITTER_API_SECRET"], { site: "http://api.twitter.com" })
-    access_token = OAuth::AccessToken.new(consumer, ENV["TWITTER_TOKEN"], ENV["TWITTER_TOKEN_SECRET"])
-    tweet_text = tweet_text[0..138] + "…" if tweet_text.size > 140
-    response = access_token.post("https://api.twitter.com/1.1/statuses/update.json", { status: tweet_text })
-    response_json = JSON.parse(response.body)
-    puts "[LOG] Sent tweet: http://twitter.com/statuses/#{response_json["id"]}"
-  rescue OAuth::Error
-    nil
-  end
-end
-
 def get_slack_name(slack_id)
   username = ""
   uri = "https://slack.com/api/users.list?token=#{ENV["API_TOKEN"]}"
@@ -287,7 +273,7 @@ def import_history(channel_id, latest = nil, user_id = nil, oldest = nil)
     messages = messages.find_all{ |m| m["user"] == user_id } unless user_id.nil?
 
     if messages.size > 0
-      puts "Importing #{messages.size} messages from #{DateTime.strptime(messages.first["ts"],"%s").strftime("%c")}" if messages.size > 0  
+      puts "Importing #{messages.size} messages from #{DateTime.strptime(messages.first["ts"],"%s").strftime("%c")}" if messages.size > 0
       $redis.pipelined do
         messages.each do |m|
           store_markov(m["text"])
