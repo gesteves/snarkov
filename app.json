@@ -30,6 +30,10 @@
       "required": true,
       "value": "100"
     },
+    "SLACK_USER": {
+      "description": "If you want to only store messages from a certain user, put their Slack username here. If blank, it stores everyone's messages.",
+      "required": false
+    },
     "REPLY_REGEX": {
       "description": "The bot will reply to messages matching this regex",
       "required": true,
