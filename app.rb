@@ -24,7 +24,7 @@ configure do
   when :development
     uri = URI.parse(ENV["LOCAL_REDIS_URL"])
   when :production
-    uri = URI.parse(ENV["REDISCLOUD_URL"])
+    uri = URI.parse(ENV["REDISCLOUD_URL"] || ENV["REDIS_URL"])
   end
   $redis = Redis.new(host: uri.host, port: uri.port, password: uri.password)
 end
