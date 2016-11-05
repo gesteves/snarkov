@@ -275,8 +275,26 @@ def import_history(channel_id, latest = nil, user_id = nil, oldest = nil)
     if messages.size > 0
       puts "Importing #{messages.size} messages from #{DateTime.strptime(messages.first["ts"],"%s").strftime("%c")}" if messages.size > 0
       $redis.pipelined do
+        last_user = ''
+        last_messages = []
         messages.each do |m|
-          store_markov(m["text"])
+          # If the message was sent by the same user as the previous one
+          # assume it's part of the same message,
+          # so add it to an array for now.
+          # That way
+          # we deal
+          # with people
+          # who Slack
+          # like
+          # this.
+          if last_user == m["user"]
+            last_messages << m["text"]
+          else
+            store_markov(last_messages.reverse.join(" ")) if last_messages.size > 0
+            store_markov(m["text"])
+            last_messages = []
+          end
+          last_user = m["user"]
         end
       end
     end
