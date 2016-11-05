@@ -124,7 +124,7 @@ def store_markov(text)
         # And the third as a value
         value = words[i+2]
         # If it's the first pair of words, store in special set
-        $redis.sadd("snarkov:initial_words", key) if i == 0
+        $redis.rpush("snarkov:initial_words", key) if i == 0
         $redis.rpush(key, value)
       end
     end
@@ -134,7 +134,7 @@ end
 def build_markov
   phrase = []
   # Get a random pair of words from Redis
-  initial_words = $redis.srandmember("snarkov:initial_words")
+  initial_words = $redis.lrange("snarkov:initial_words", 0, -1).sample
 
   unless initial_words.nil?
     # Split the key into the two words and add them to the phrase array
