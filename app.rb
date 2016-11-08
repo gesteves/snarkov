@@ -271,7 +271,7 @@ def import_history(channel_id, latest = nil, user_id = nil, oldest = nil)
           # who Slack
           # like
           # this.
-          if last_user == m["user"] && (last_ts - m["ts"].to_i).abs <= 15
+          if last_user == m["user"] && (last_ts - m["ts"].to_i).abs <= 10
             last_messages << m["text"]
           else
             store_markov(last_messages.reverse.join(" ")) if last_messages.size > 0
