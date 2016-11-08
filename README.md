@@ -52,18 +52,12 @@ $ heroku run rake import:channel CHANNELS='#random,#general' USERNAME="guille" -
 
 ## Usage
 
-After snarkov is up and running, it might respond with a Markov-generated message every time someone talks in the channel, depending on the number you have set in the `RESPONSE_CHANCE` environment variable, with 0 meaning it will never respond, and 1 meaning it'll respond every single time.
+After snarkov is up and running, the outgoing webhook you set up will send every message in the channel you selected (except those from other integrations) to snarkov, which will process and store it for future usage. It might respond with a Markov-generated message of its own, depending on the number you have set in the `RESPONSE_CHANCE` environment variable, with 0 meaning it will never respond, and 1 meaning it'll respond every single time.
 
 If you have a Mac, a fun thing to do is run this in the terminal:
 
 ```
 $ curl -s http://[your-heroku-app]/markov?token=[outgoing-webhook-token] | say -i
-```
-
-Finally, to add more content to Snarkov, you can set up a daily scheduled task in Heroku to import the last day of content, with the channels you want to feed it, like so:
-
-```
-rake import:channel CHANNELS="#random,#general" DAYS=1
 ```
 
 ## Running locally
