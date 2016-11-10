@@ -5,7 +5,6 @@ require "httparty"
 require "date"
 require "redis"
 require "dotenv"
-require "oauth"
 
 configure do
   # Load .env vars
