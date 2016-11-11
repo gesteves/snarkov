@@ -6,18 +6,15 @@ namespace :import do
     if ENV["CHANNELS"].nil?
       puts "You need to specify the name of the channels you wish to import, e.g. rake import:channel CHANNELS=\"#random\""
     else
+      options = {}
       start_time = Time.now
       channels = ENV["CHANNELS"].split(",")
-      user_id = get_slack_user_id(ENV["USERNAME"]) unless ENV["USERNAME"].nil?
-      if ENV["DAYS"].nil?
-        oldest = 0
-      else
-        oldest = (start_time - (60 * 60 * 24 * ENV["DAYS"].to_i)).to_i
-      end
+      options[:user_id] = get_slack_user_id(ENV["USERNAME"]) unless ENV["USERNAME"].nil?
+      options[:oldest] = (start_time - (60 * 60 * 24 * ENV["DAYS"].to_i)).to_i unless ENV["DAYS"].nil?
       channels.each do |channel|
         puts "Importing channel #{channel.strip} to #{ENV["RACK_ENV"]} (this will take a while)"
         channel_id = get_channel_id(channel.strip)
-        import_history(channel_id, nil, user_id, oldest)
+        import_history(channel_id, options)
       end
       puts "Completed in #{Time.now - start_time} seconds"
     end

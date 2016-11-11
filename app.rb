@@ -260,31 +260,30 @@ def get_channel_name(channel_id)
   channel_name
 end
 
-def import_history(channel_id, latest = nil, user_id = nil, oldest = nil)
+def import_history(channel_id, options = {})
   uri = "https://slack.com/api/channels.history?token=#{ENV["API_TOKEN"]}&channel=#{channel_id}&count=1000"
-  uri += "&latest=#{latest}" unless latest.nil?
-  uri += "&oldest=#{oldest}" unless oldest.nil?
+  uri += "&latest=#{options[:latest]}" unless options[:latest].nil?
   request = HTTParty.get(uri)
   response = JSON.parse(request.body)
   if response["ok"]
     # Find all messages that are plain messages (no subtype), are not hidden, are not from a bot (integrations, etc.) and are not cfbot commands
     messages = response["messages"].find_all{ |m| m["subtype"].nil? && m["hidden"] != true && m["bot_id"].nil? && !m["user"].nil? && !m["text"].match(settings.reply_regex) && !m["text"].match(settings.ignore_regex) }
     # Filter by user id, if necessary
-    messages = messages.find_all{ |m| m["user"] == user_id } unless user_id.nil?
+    messages = messages.find_all{ |m| m["user"] == options[:user_id] } unless options[:user_id].nil?
 
     if messages.size > 0
       puts "Importing #{messages.size} messages from #{DateTime.strptime(messages.first["ts"],"%s").strftime("%c")}" if messages.size > 0
       $redis.pipelined do
         messages.each do |m|
-          store_markov(m["text"])
+          store_markov(m["text"]) if m["ts"].to_i > options[:oldest]
         end
       end
     end
 
     # If there are more messages in the API call, make another call, starting with the timestamp of the last message
-    if response["has_more"] && !response["messages"].last["ts"].nil?
-      latest = response["messages"].last["ts"]
-      import_history(channel_id, latest, user_id, oldest)
+    if response["has_more"] && !response["messages"].last["ts"].nil? && response["messages"].last["ts"].to_i > options[:oldest]
+      options[:latest] = response["messages"].last["ts"]
+      import_history(channel_id, options)
     end
   else
     puts "Error fetching channel history: #{response["error"]}" unless response["error"].nil?
