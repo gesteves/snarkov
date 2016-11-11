@@ -14,7 +14,7 @@ namespace :import do
       channels.each do |channel|
         puts "\n******************"
         puts "Importing channel #{channel.strip} to #{ENV["RACK_ENV"]} (this will take a while)"
-        puts "******************\n"
+        puts "******************\n\n"
         channel_id = get_channel_id(channel.strip)
         import_history(channel_id, options)
       end

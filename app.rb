@@ -272,9 +272,7 @@ def import_history(channel_id, options = {})
     messages = messages.find_all{ |m| m["user"] == options[:user_id] } unless options[:user_id].nil?
 
     if messages.size > 0
-      puts "\n******************"
       puts "Importing #{messages.size} messages from #{DateTime.strptime(messages.first["ts"],"%s").strftime("%c")}" if messages.size > 0
-      puts "******************\n"
       $redis.pipelined do
         messages.each do |m|
           store_markov(m["text"]) if m["ts"].to_i > options[:oldest]
