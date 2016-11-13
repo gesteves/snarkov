@@ -12,9 +12,7 @@ namespace :import do
       options[:user_id] = get_slack_user_id(ENV["USERNAME"]) unless ENV["USERNAME"].nil?
       options[:oldest] = (start_time - (60 * 60 * 24 * ENV["DAYS"].to_i)).to_i unless ENV["DAYS"].nil?
       channels.each do |channel|
-        puts "\n******************"
-        puts "Importing channel #{channel.strip} to #{ENV["RACK_ENV"]} (this will take a while)"
-        puts "******************\n\n"
+        puts "\nImporting channel #{channel.strip} to #{ENV["RACK_ENV"]} (this will take a while)\n\n"
         channel_id = get_channel_id(channel.strip)
         import_history(channel_id, options)
       end
