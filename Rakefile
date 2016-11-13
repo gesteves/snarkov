@@ -23,7 +23,7 @@ namespace :import do
   end
 end
 
-task :flush do
+task :reset do
   start_time = Time.now
   puts "Flushing redis..."
   $redis.flushall
