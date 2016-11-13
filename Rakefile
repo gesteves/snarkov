@@ -23,6 +23,9 @@ namespace :import do
   end
 end
 
-task :tweet do
-  tweet(build_markov)
+task :flush do
+  start_time = Time.now
+  puts "Flushing redis..."
+  $redis.flushall
+  puts "Completed in #{Time.now - start_time} seconds"
 end
