@@ -126,7 +126,7 @@ def store_markov(text)
             .gsub(/\s_|_\s|_[,\.\?!]|^_|_$/, " ")
             .gsub(/\s\(|\)\s|\)[,\.\?!]|^\(|\)$/, " ")
             .gsub(/&lt;.*?&gt;|&lt;|&gt;|[\*`<>"“”•~]/, "")
-            .gsub(/[,;:.]+$/, "")
+            .gsub(/[,;.]+$/, "")
             .downcase
             .strip
     # Split words into array
