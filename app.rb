@@ -289,3 +289,12 @@ def import_history(channel_id, options = {})
     puts "Error fetching channel history: #{response["error"]}" unless response["error"].nil?
   end
 end
+
+def set_topic(channel_id, topic)
+  uri = "https://slack.com/api/channels.setTopic?token=#{ENV["API_TOKEN"]}&channel=#{channel_id}&count=1000"
+  request = HTTParty.post(uri, body: {
+    token: ENV["API_TOKEN"],
+    channel: channel_id,
+    topic: topic
+  })
+end
