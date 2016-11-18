@@ -33,7 +33,7 @@ task :reset => ['flush', 'import:channel']
 task :set_topic do
   if ENV["CHANNEL"].nil?
     puts "You need to specify the name of the channel you wish to set the topic for."
-  else
+  elsif !Time.now.saturday? && !Time.now.sunday?
     start_time = Time.now
     channel_id = get_channel_id(ENV["CHANNEL"].strip)
     topic = build_markov
