@@ -126,7 +126,7 @@ def store_markov(text)
             .gsub(/¯\\_\(ツ\)_\/¯/, ":shrug:")                        # Replace shrugs
             .gsub(/[‘’]/,"\'")                                        # Replace single curly quotes with straight quotes
             .gsub(/\s_|_\s|_[,\.\?!]|^_|_$/, " ")                     # Remove underscores for _emphasis_
-            .gsub(/&lt;.*?&gt;|&lt;|&gt;|[\*`<>"“”•~\(\)]|^\s*-/, "") # Remove extraneous characters
+            .gsub(/&lt;.*?&gt;|&lt;|&gt;|[\*`<>"“”•~\(\)\[\]{}]|^\s*-/, "") # Remove extraneous characters
             .gsub(/[,;.]+$/, "")                                      # Remove trailing punctuation
             .gsub(/:shrug:/, '¯\_(ツ)_/¯')                            # Put the shrug back
             .downcase
