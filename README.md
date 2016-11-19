@@ -27,19 +27,19 @@ Snarkov works better if it has a lot of text to work with. To help populate it, 
 To populate redis in production, install the [Heroku Toolbelt](https://toolbelt.heroku.com) and run:
 
 ```
-$ heroku run rake import:channel CHANNELS='#channel-name' --app your-heroku-app-name
+$ heroku run rake ingest:channel CHANNELS='#channel-name' --app your-heroku-app-name
 ```
 
-The `import:channel` task takes a single channel name, or a comma-separated list of channel names, e.g.:
+The `ingest:channel` task takes a single channel name, or a comma-separated list of channel names, e.g.:
 
 ```
-$ heroku run rake import:channel CHANNELS='#random,#general' --app your-heroku-app-name
+$ heroku run rake ingest:channel CHANNELS='#random,#general' --app your-heroku-app-name
 ```
 
 If you want to import a channel's history going back only a certain number of days, you can add a `DAYS` option. For example:
 
 ```
-$ heroku run rake import:channel CHANNELS='#random,#general' DAYS=5 --app your-heroku-app-name
+$ heroku run rake ingest:channel CHANNELS='#random,#general' DAYS=5 --app your-heroku-app-name
 ```
 
 This will import the last 5 days of chat history from the #random and #general channels.
@@ -47,7 +47,7 @@ This will import the last 5 days of chat history from the #random and #general c
 If you only want to import a certain user's messages, use the `USERNAME` option. For example:
 
 ```
-$ heroku run rake import:channel CHANNELS='#random,#general' USERNAME="guille" --app your-heroku-app-name
+$ heroku run rake ingest:channel CHANNELS='#random,#general' USERNAME="guille" --app your-heroku-app-name
 ```
 
 ## Usage

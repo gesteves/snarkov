@@ -1,7 +1,7 @@
 require "./app"
 
-namespace :import do
-  desc "Import the history of a Slack channel into the bot"
+namespace :ingest do
+  desc "Ingest the history of a Slack channel into the bot"
   task :channel do
     if ENV["CHANNELS"].nil?
       puts "You need to specify the name of the channels you wish to import, e.g. rake import:channel CHANNELS=\"#random\""
@@ -19,18 +19,20 @@ namespace :import do
       puts "Completed in #{Time.now - start_time} seconds"
     end
   end
+
+  desc "Empties the entire database"
+  task :empty do
+    start_time = Time.now
+    puts "Emptying redis..."
+    $redis.flushall
+    puts "Completed in #{Time.now - start_time} seconds"
+  end
+
+  desc "Empties the entire database and reingests the channel"
+  task :reingest => ['empty', 'channel']
 end
 
-task :flush do
-  start_time = Time.now
-  puts "Flushing redis..."
-  $redis.flushall
-  puts "Completed in #{Time.now - start_time} seconds"
-end
-
-task :reset => ['flush', 'import:channel']
-
-task :set_topic do
+task :topic do
   if ENV["CHANNEL"].nil?
     puts "You need to specify the name of the channel you wish to set the topic for."
   elsif !Time.now.saturday? && !Time.now.sunday? && rand > 0.5
