@@ -150,7 +150,8 @@ def store_markov(text)
   end
 end
 
-def build_markov
+def build_markov(opts = {})
+  options = { max_words: ENV["MAX_WORDS"].to_i }.merge(opts)
   phrase = []
   # Get a random pair of words from Redis
   initial_words = $redis.lrange("snarkov:initial_words", 0, -1).sample
@@ -168,7 +169,7 @@ def build_markov
 
       # With these two words as a key, get a third word from Redis
       # until there are no more words
-      while phrase.size <= ENV["MAX_WORDS"].to_i && new_word = get_next_word(first_word, second_word)
+      while phrase.size <= options[:max_words] && new_word = get_next_word(first_word, second_word)
         # Add the new word to the array
         phrase << new_word
         # Set the second word and the new word as keys for the next iteration
