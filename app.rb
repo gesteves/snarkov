@@ -115,18 +115,18 @@ def store_markov(text)
   # Split long text into sentences
   sentences = text.split(/\.\s+|\n+/)
   sentences.each do |t|
-    # Horrible regex, this
-    text = t.gsub(/<@([\w]+)>:?/){ |m| get_slack_name($1) }
-            .gsub(/<#([\w]+)>/){ |m| get_channel_name($1) }
-            .gsub(/<.*?>:?/, "")
-            .gsub(/:-?\(/, ":disappointed:")
-            .gsub(/:-?\)/, ":smiley:")
-            .gsub(/;-?\)/, ":wink:")
-            .gsub(/[‘’]/,"\'")
-            .gsub(/\s_|_\s|_[,\.\?!]|^_|_$/, " ")
-            .gsub(/\s\(|\)\s|\)[,\.\?!]|^\(|\)$/, " ")
-            .gsub(/&lt;.*?&gt;|&lt;|&gt;|[\*`<>"“”•~]/, "")
-            .gsub(/[,;.]+$/, "")
+    # Horrible chain of regex to simplify and normalize strings
+    text = t.gsub(/<@([\w]+)>:?/){ |m| get_slack_name($1) }           # Replace user tags with first names
+            .gsub(/<#([\w]+)>/){ |m| get_channel_name($1) }           # Replace channel tags with channel names
+            .gsub(/<.*?>:?/, "")                                      # Remove links
+            .gsub(/:-?\(/, ":disappointed:")                          # Replace :( with :dissapointed:
+            .gsub(/:-?\)/, ":smiley:")                                # Replace :) with :smiley:
+            .gsub(/;-?\)/, ":wink:")                                  # Replace ;) with :wink:
+            .gsub(/<3|&lt;3/, ":heart:")                              # Replace <3 with :heart:
+            .gsub(/[‘’]/,"\'")                                        # Replace single curly quotes with straight quotes
+            .gsub(/\s_|_\s|_[,\.\?!]|^_|_$/, " ")                     # Remove underscores for _emphasis_
+            .gsub(/&lt;.*?&gt;|&lt;|&gt;|[\*`<>"“”•~\(\)]|^\s*-/, "") # Remove extraneous characters
+            .gsub(/[,;.]+$/, "")                                      # Remove trailing punctuation
             .downcase
             .strip
     if text.size > 0
