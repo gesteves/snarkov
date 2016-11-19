@@ -129,7 +129,7 @@ def store_markov(text)
             .gsub(/[,;.]+$/, "")                                      # Remove trailing punctuation
             .downcase
             .strip
-    if text.size > 0
+    if text.size >= 3
       puts "[LOG] Storing: #{text}"
       # Split words into array
       words = text.split(/\s+/)
