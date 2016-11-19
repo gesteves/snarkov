@@ -130,13 +130,12 @@ def store_markov(text)
             .downcase
             .strip
     if text.size > 0
+      puts "[LOG] Storing: #{text}"
       # Split words into array
       words = text.split(/\s+/)
       if words.size < 3
-        puts "[LOG] Storing: #{text}"
         $redis.rpush("snarkov:initial_words", words.join(' '))
       else
-        puts "[LOG] Storing: #{text}"
         (words.size - 2).times do |i|
           # Join the first two words as the key
           key = words[i..i+1].join(" ")
