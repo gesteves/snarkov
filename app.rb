@@ -123,10 +123,12 @@ def store_markov(text)
             .gsub(/:-?\)/, ":smiley:")                                # Replace :) with :smiley:
             .gsub(/;-?\)/, ":wink:")                                  # Replace ;) with :wink:
             .gsub(/<3|&lt;3/, ":heart:")                              # Replace <3 with :heart:
+            .gsub(/¯\\_\(ツ\)_\/¯/, ":shrug:")                        # Replace shrugs
             .gsub(/[‘’]/,"\'")                                        # Replace single curly quotes with straight quotes
             .gsub(/\s_|_\s|_[,\.\?!]|^_|_$/, " ")                     # Remove underscores for _emphasis_
             .gsub(/&lt;.*?&gt;|&lt;|&gt;|[\*`<>"“”•~\(\)]|^\s*-/, "") # Remove extraneous characters
             .gsub(/[,;.]+$/, "")                                      # Remove trailing punctuation
+            .gsub(/:shrug:/, '¯\_(ツ)_/¯')                            # Put the shrug back
             .downcase
             .strip
     if text.size >= 3
