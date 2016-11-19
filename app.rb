@@ -260,7 +260,8 @@ def get_channel_name(channel_id)
   channel_name
 end
 
-def import_history(channel_id, options = {})
+def import_history(channel_id, opts = {})
+  options = { oldest: 0 }.merge(opts)
   uri = "https://slack.com/api/channels.history?token=#{ENV["API_TOKEN"]}&channel=#{channel_id}&count=1000"
   uri += "&latest=#{options[:latest]}" unless options[:latest].nil?
   request = HTTParty.get(uri)
