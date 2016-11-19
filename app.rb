@@ -129,19 +129,23 @@ def store_markov(text)
             .gsub(/[,;.]+$/, "")
             .downcase
             .strip
-    # Split words into array
-    words = text.split(/\s+/)
-    # Ignore if phrase is less than 3 words
-    unless words.size < 3
-      puts "[LOG] Storing: #{text}"
-      (words.size - 2).times do |i|
-        # Join the first two words as the key
-        key = words[i..i+1].join(" ")
-        # And the third as a value
-        value = words[i+2]
-        # If it's the first pair of words, store in special set
-        $redis.rpush("snarkov:initial_words", key) if i == 0
-        $redis.rpush(key, value)
+    if text.size > 0
+      # Split words into array
+      words = text.split(/\s+/)
+      if words.size < 3
+        puts "[LOG] Storing: #{text}"
+        $redis.rpush("snarkov:initial_words", words.join(' '))
+      else
+        puts "[LOG] Storing: #{text}"
+        (words.size - 2).times do |i|
+          # Join the first two words as the key
+          key = words[i..i+1].join(" ")
+          # And the third as a value
+          value = words[i+2]
+          # If it's the first pair of words, store in special set
+          $redis.rpush("snarkov:initial_words", key) if i == 0
+          $redis.rpush(key, value)
+        end
       end
     end
   end
@@ -155,18 +159,22 @@ def build_markov
   unless initial_words.nil?
     # Split the key into the two words and add them to the phrase array
     initial_words = initial_words.split(" ")
-    first_word = initial_words.first
-    second_word = initial_words.last
-    phrase << first_word
-    phrase << second_word
+    if initial_words.size == 1
+      phrase << initial_words.first
+    else
+      first_word = initial_words.first
+      second_word = initial_words.last
+      phrase << first_word
+      phrase << second_word
 
-    # With these two words as a key, get a third word from Redis
-    # until there are no more words
-    while phrase.size <= ENV["MAX_WORDS"].to_i && new_word = get_next_word(first_word, second_word)
-      # Add the new word to the array
-      phrase << new_word
-      # Set the second word and the new word as keys for the next iteration
-      first_word, second_word = second_word, new_word
+      # With these two words as a key, get a third word from Redis
+      # until there are no more words
+      while phrase.size <= ENV["MAX_WORDS"].to_i && new_word = get_next_word(first_word, second_word)
+        # Add the new word to the array
+        phrase << new_word
+        # Set the second word and the new word as keys for the next iteration
+        first_word, second_word = second_word, new_word
+      end
     end
   end
   phrase.join(" ").strip
