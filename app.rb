@@ -99,6 +99,7 @@ post "/markov" do
          params[:user_id] != "WEBFORM" &&
          (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_regex))
         reply = build_markov
+        puts "[LOG] Replying: #{reply}"
         response = json_response_for_slack(reply)
       end
     end
@@ -200,7 +201,6 @@ def shut_up(minutes = 60)
 end
 
 def json_response_for_slack(reply)
-  puts "[LOG] Replying: #{reply}"
   response = { text: reply, link_names: 1 }
   response[:username] = ENV["BOT_USERNAME"] unless ENV["BOT_USERNAME"].nil?
   response[:icon_emoji] = ENV["BOT_ICON"] unless ENV["BOT_ICON"].nil?
@@ -223,7 +223,7 @@ def get_slack_name(slack_id)
     end
 
   else
-    puts "Error fetching user: #{response["error"]}" unless response["error"].nil?
+    puts "[ERROR] fetching user: #{response["error"]}" unless response["error"].nil?
   end
   username
 end
@@ -237,7 +237,7 @@ def get_slack_user_id(username)
     user = response["members"].find { |u| u["name"] == username.downcase }
     user_id = "#{user["id"]}" unless user.nil?
   else
-    puts "Error fetching user ID: #{response["error"]}" unless response["error"].nil?
+    puts "[ERROR] Error fetching user ID: #{response["error"]}" unless response["error"].nil?
   end
   user_id
 end
@@ -250,7 +250,7 @@ def get_channel_id(channel_name)
     channel = response["channels"].find { |u| u["name"] == channel_name.gsub("#","") }
     channel_id = channel["id"] unless channel.nil?
   else
-    puts "Error fetching channel id: #{response["error"]}" unless response["error"].nil?
+    puts "[ERROR] Error fetching channel id: #{response["error"]}" unless response["error"].nil?
     channel_id = ""
   end
   channel_id
@@ -265,7 +265,7 @@ def get_channel_name(channel_id)
     channel = response["channels"].find { |u| u["id"] == channel_id }
     channel_name = "##{channel["name"]}" unless channel.nil?
   else
-    puts "Error fetching channel name: #{response["error"]}" unless response["error"].nil?
+    puts "[ERROR] Error fetching channel name: #{response["error"]}" unless response["error"].nil?
   end
   channel_name
 end
@@ -297,7 +297,7 @@ def import_history(channel_id, opts = {})
       import_history(channel_id, options)
     end
   else
-    puts "Error fetching channel history: #{response["error"]}" unless response["error"].nil?
+    puts "[ERROR] Error fetching channel history: #{response["error"]}" unless response["error"].nil?
   end
 end
 
@@ -308,4 +308,10 @@ def set_topic(channel_id, topic)
     channel: channel_id,
     topic: topic
   })
+  response = request.body
+  if response["ok"]
+    puts "[LOG] Channel topic set to “#{topic}”"
+  else
+    puts "[ERROR] Error setting channel topic: #{response["error"]}"
+  end
 end
