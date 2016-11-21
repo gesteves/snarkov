@@ -99,7 +99,6 @@ post "/markov" do
          params[:user_id] != "WEBFORM" &&
          (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_regex))
         reply = build_markov
-        puts "[LOG] Replying: #{reply}"
         response = json_response_for_slack(reply)
       end
     end
@@ -133,7 +132,7 @@ def store_markov(text)
             .downcase
             .strip
     if text.size >= 3
-      puts "[LOG] Storing: #{text}"
+      puts "[LOG] Storing: “#{text}”"
       # Split words into array
       words = text.split(/\s+/)
       if words.size < 3
@@ -160,6 +159,7 @@ def build_markov(opts = {})
   initial_words = $redis.lrange("snarkov:initial_words", 0, -1).sample
 
   unless initial_words.nil?
+    puts "[LOG] Starting sentence with “#{initial_words}”"
     # Split the key into the two words and add them to the phrase array
     initial_words = initial_words.split(" ")
     if initial_words.size == 1
@@ -180,11 +180,16 @@ def build_markov(opts = {})
       end
     end
   end
-  phrase.join(" ").strip
+  reply = phrase.join(" ").strip
+  puts "[LOG] Replying: “#{reply}”"
+  reply
 end
 
 def get_next_word(first_word, second_word)
-  $redis.lrange("#{first_word} #{second_word}", 0, -1).sample
+  responses = $redis.lrange("#{first_word} #{second_word}", 0, -1)
+  next_word = responses.sample
+  puts responses.size == 0 ? "[LOG]     “#{first_word} #{second_word}” -> #{responses.to_s} -> Ending sentence" : "[LOG]     “#{first_word} #{second_word}” -> #{responses.to_s} -> “#{next_word}”"
+  next_word
 end
 
 def shut_up(minutes = 60)
