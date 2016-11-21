@@ -181,7 +181,7 @@ def build_markov(opts = {})
     end
   end
   reply = phrase.join(" ").strip
-  puts "[LOG] Replying: \"#{reply}\""
+  puts "[LOG] Speaking: \"#{reply}\""
   reply
 end
 
