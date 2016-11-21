@@ -11,7 +11,7 @@ end
 desc "Ingest the history of one or more Slack channels into the database"
 task :ingest do
   if ENV["CHANNELS"].nil?
-    puts "You need to specify the name of the channels you wish to import, e.g. rake import:channel CHANNELS=\"#random\""
+    puts "You need to specify the name of the channels you wish to import, e.g. rake ingest CHANNELS=\"#random\""
   else
     options = {}
     start_time = Time.now
@@ -32,7 +32,7 @@ task :reingest => ['reset', 'ingest']
 
 task :topic do
   if ENV["CHANNEL"].nil?
-    puts "You need to specify the name of the channel you wish to set the topic for."
+    puts "You need to specify the name of the channel you wish to set the topic for, e.g. rake topic CHANNEL=\"#{random}\""
   else
     start_time = Time.now
     channel_id = get_channel_id(ENV["CHANNEL"].strip)
