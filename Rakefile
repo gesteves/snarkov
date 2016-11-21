@@ -33,11 +33,10 @@ task :reingest => ['reset', 'ingest']
 task :topic do
   if ENV["CHANNEL"].nil?
     puts "You need to specify the name of the channel you wish to set the topic for."
-  elsif !Time.now.saturday? && !Time.now.sunday?
+  else
     start_time = Time.now
     channel_id = get_channel_id(ENV["CHANNEL"].strip)
-    topic = build_markov
-    set_topic(channel_id, topic)
+    markov_topic(channel_id)
     puts "Completed in #{Time.now - start_time} seconds"
   end
 end
