@@ -188,7 +188,7 @@ end
 def get_next_word(first_word, second_word)
   responses = $redis.lrange("#{first_word} #{second_word}", 0, -1)
   next_word = responses.sample
-  puts responses.size == 0 ? "[LOG]     \"#{first_word} #{second_word}\" -> #{responses.to_s} -> Ending sentence" : "[LOG]     \"#{first_word} #{second_word}\" -> #{responses.to_s} -> \"#{next_word}\""
+  puts responses.size == 0 ? "[LOG]     \"#{first_word} #{second_word}\" -> #{responses.to_s}" : "[LOG]     \"#{first_word} #{second_word}\" -> #{responses.to_s} -> \"#{next_word}\""
   next_word
 end
 
