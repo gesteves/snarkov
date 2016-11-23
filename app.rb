@@ -204,7 +204,7 @@ def markov_topic(channel_id)
   now = Time.now.getlocal('-05:00')
   if !$redis.exists("snarkov:topic_set:#{channel_id}") && rand < 0.25 && !now.saturday? && !now.sunday? && now.hour.between?(9, 18)
     topic = ''
-    while topic.size > 250
+    while topic.size < 3 || topic.size > 250
       topic = build_markov
     end
     set_topic(channel_id, topic)
