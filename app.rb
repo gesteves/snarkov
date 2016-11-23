@@ -43,16 +43,6 @@ get "/markov" do
   end
 end
 
-get "/form" do
-  if params[:token] == ENV["OUTGOING_WEBHOOK_TOKEN"]
-    status 200
-    erb :form
-  else
-    status 403
-    body "Nope."
-  end
-end
-
 post "/markov" do
   begin
     response = ""
@@ -90,9 +80,7 @@ post "/markov" do
       end
 
       # Reply if the bot isn't shushed AND either the random number is under the threshold OR the bot was invoked
-      if !$redis.exists("snarkov:shush") &&
-         params[:user_id] != "WEBFORM" &&
-         (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_regex))
+      if !$redis.exists("snarkov:shush") && (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_regex))
         reply = build_markov
         response = json_response_for_slack(reply)
       end
