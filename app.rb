@@ -201,9 +201,10 @@ def shut_up(minutes = 60)
 end
 
 def markov_topic(channel_id)
-  if !$redis.exists("snarkov:topic_set:#{channel_id}") && rand < 0.25 && !Time.now.saturday? && !Time.now.sunday? && Time.now.utc.hour >= 11 && Time.now.utc.hour <= 23
+  now = Time.now.getlocal('-05:00')
+  if !$redis.exists("snarkov:topic_set:#{channel_id}") && rand < 0.25 && !now.saturday? && !now.sunday? && now.hour.between?(9, 18)
     topic = ''
-    while topic.size < 3 || topic.size > 250
+    while topic.size > 250
       topic = build_markov
     end
     set_topic(channel_id, topic)
