@@ -93,11 +93,10 @@ post '/markov' do
   body json_response_for_slack(response)
 end
 
-# If the token doesn't match, the user is slackbot (or any other integration) or blank,
-# or there's no text, the message isn't valid.
+# If the token matches and the message didn't come from a bot,
+# it's valid
 def is_valid_message?(params)
-  settings.environment == :development ||
-  (params[:token] == ENV['OUTGOING_WEBHOOK_TOKEN'] && params[:user_id] != 'USLACKBOT' && params[:user_id] != '' && !params[:text].nil?)
+  settings.environment == :development || (params[:token] == ENV['OUTGOING_WEBHOOK_TOKEN'] && params[:bot_id].nil?)
 end
 
 def is_mute_command?(params)
