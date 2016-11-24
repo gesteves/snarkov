@@ -89,29 +89,17 @@ def store_message(params)
   if !params[:text].match(settings.reply_regex) && !params[:text].match(settings.ignore_regex) && !params[:user_name].match(settings.ignore_regex)
     if ENV["SLACK_USER"].nil?
       $redis.pipelined do
-        store_markov(params[:text])
+        process_markov(params[:text])
       end
     elsif ENV["SLACK_USER"] == params[:user_name] || ENV["SLACK_USER"] == params[:user_id]
       $redis.pipelined do
-        store_markov(params[:text])
+        process_markov(params[:text])
       end
     end
   end
 end
 
-def mute_bot(text)
-  time = text.scan(/\d+/).first.nil? ? 60 : text.scan(/\d+/).first.to_i
-  minutes = [time, 60].min
-  if minutes > 0
-    $redis.setex("snarkov:shush", minutes * 60, "true")
-    puts "[LOG] Shutting up: #{minutes} minutes"
-    '🤐'
-  else
-    '🤔'
-  end
-end
-
-def store_markov(text)
+def process_markov(text)
   # Split long text into sentences
   sentences = text.split(/\.\s+|\n+/)
   sentences.each do |t|
@@ -149,6 +137,18 @@ def store_markov(text)
         end
       end
     end
+  end
+end
+
+def mute_bot(text)
+  time = text.scan(/\d+/).first.nil? ? 60 : text.scan(/\d+/).first.to_i
+  minutes = [time, 60].min
+  if minutes > 0
+    $redis.setex("snarkov:shush", minutes * 60, "true")
+    puts "[LOG] Shutting up: #{minutes} minutes"
+    '🤐'
+  else
+    '🤔'
   end
 end
 
@@ -290,7 +290,7 @@ def import_history(channel_id, opts = {})
       puts "\nImporting #{messages.size} messages from #{DateTime.strptime(messages.first["ts"],"%s").strftime("%c")} to #{DateTime.strptime(messages.last["ts"],"%s").strftime("%c")}\n\n" if messages.size > 0
       $redis.pipelined do
         messages.each do |m|
-          store_markov(m["text"]) if m["ts"].to_i > options[:oldest]
+          process_markov(m["text"]) if m["ts"].to_i > options[:oldest]
         end
       end
     end
