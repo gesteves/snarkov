@@ -131,7 +131,7 @@ end
 
 def process_markov(text)
   # Split long text into sentences
-  sentences = text.split(/\.\s+|\n+/)
+  sentences = text.split(/\.\s+/)
   sentences.each do |t|
     # Horrible chain of regex to simplify and normalize strings
     text = t.gsub(/<@([\.\w|-]+)>:?/){ |m| get_slack_name($1) }       # Replace user tags with first names
