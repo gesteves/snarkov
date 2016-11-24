@@ -150,7 +150,7 @@ def process_markov(text)
             .downcase
             .strip
     if text.size >= 3
-      puts "[LOG] Storing: \'#{text}\'"
+      puts "[LOG] Storing: \"#{text}\""
       # Split words into array
       words = text.split(/\s+/)
       if words.size < 3
@@ -206,7 +206,7 @@ def build_markov(opts = {})
     end
   end
   reply = phrase.join(' ').strip
-  puts "[LOG] Speaking: \'#{reply}\'"
+  puts "[LOG] Speaking: \"#{reply}\""
   reply
 end
 
@@ -396,7 +396,7 @@ def set_topic(channel_id, topic)
   })
   response = request.body
   if response['ok']
-    puts "[LOG] Channel topic set to \'#{topic}\'"
+    puts "[LOG] Channel topic set to \"#{topic}\""
   else
     puts "[ERROR] Error setting channel topic: #{response['error']}"
   end
