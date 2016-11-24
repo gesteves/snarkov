@@ -126,7 +126,7 @@ def process_markov(text)
   sentences.each do |t|
     # Horrible chain of regex to simplify and normalize strings
     text = t.gsub(/<@([\w]+)>:?/){ |m| get_slack_name($1) }           # Replace user tags with first names
-            .gsub(/<#([\w]+)>/){ |m| get_channel_name($1) }           # Replace channel tags with channel names
+            .gsub(/<#([\w|-]+)>/){ |m| get_channel_name($1) }           # Replace channel tags with channel names
             .gsub(/<.*?>:?/, "")                                      # Remove links
             .gsub(/:-?\(/, ":disappointed:")                          # Replace :( with :dissapointed:
             .gsub(/:-?\)/, ":smiley:")                                # Replace :) with :smiley:
@@ -246,7 +246,6 @@ def get_slack_name(slack_id)
         username = user["name"]
       end
     end
-
   else
     puts "[ERROR] fetching user: #{response["error"]}" unless response["error"].nil?
   end
@@ -283,14 +282,20 @@ end
 
 def get_channel_name(channel_id)
   channel_name = ""
-  uri = "https://slack.com/api/channels.list?token=#{ENV["API_TOKEN"]}"
-  request = HTTParty.get(uri)
-  response = JSON.parse(request.body)
-  if response["ok"]
-    channel = response["channels"].find { |u| u["id"] == channel_id }
-    channel_name = "##{channel["name"]}" unless channel.nil?
+  channel_id = channel_id.split('|')
+
+  if channel_id.size == 1
+    uri = "https://slack.com/api/channels.list?token=#{ENV["API_TOKEN"]}"
+    request = HTTParty.get(uri)
+    response = JSON.parse(request.body)
+    if response["ok"]
+      channel = response["channels"].find { |u| u["id"] == channel_id.first }
+      channel_name = "##{channel["name"]}" unless channel.nil?
+    else
+      puts "[ERROR] Error fetching channel name: #{response["error"]}" unless response["error"].nil?
+    end
   else
-    puts "[ERROR] Error fetching channel name: #{response["error"]}" unless response["error"].nil?
+    channel_name = "##{channel_id.last}"
   end
   channel_name
 end
