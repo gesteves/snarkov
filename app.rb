@@ -370,10 +370,8 @@ def import_history(channel_id, opts = {})
 
     if messages.size > 0
       puts "\nImporting #{messages.size} messages from #{DateTime.strptime(messages.first['ts'],'%s').strftime('%c')} to #{DateTime.strptime(messages.last['ts'],'%s').strftime('%c')}\n\n" if messages.size > 0
-      $redis.pipelined do
-        messages.each do |m|
-          process_markov(m['text']) if m['ts'].to_i > options[:oldest]
-        end
+      messages.each do |m|
+        process_markov(m['text']) if m['ts'].to_i > options[:oldest]
       end
     end
 
