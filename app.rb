@@ -96,7 +96,8 @@ end
 # If the token doesn't match, the user is slackbot (or any other integration) or blank,
 # or there's no text, the message isn't valid.
 def is_valid_message?(params)
-  params[:token] == ENV['OUTGOING_WEBHOOK_TOKEN'] && params[:user_id] != 'USLACKBOT' && params[:user_id] != '' && !params[:text].nil?
+  settings.environment == :development ||
+  (params[:token] == ENV['OUTGOING_WEBHOOK_TOKEN'] && params[:user_id] != 'USLACKBOT' && params[:user_id] != '' && !params[:text].nil?)
 end
 
 def is_mute_command?(params)
