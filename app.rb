@@ -87,7 +87,9 @@ def is_mute_command?(params)
   params[:text].match(settings.mute_regex)
 end
 
-# If the bot isn't muted, and either random chance or the reply keyword is invoked,
+# If the bot isn't muted,
+# and the ignore keyword is not invoked,
+# and the reply keyword is invoked or the rand check passes,
 # then the bot will send back a reply.
 def should_reply?(params)
   !$redis.exists("snarkov:shush") &&
@@ -95,7 +97,7 @@ def should_reply?(params)
   (rand <= ENV["RESPONSE_CHANCE"].to_f || (!settings.reply_regex.nil? && params[:text].match(settings.reply_regex)))
 end
 
-# If the reply keyword wasn't invoked and the ignore keyword isn't invoked,
+# If the reply keyword isn't invoked and the ignore keyword isn't invoked,
 # store the message as a markov chain.
 # If the SLACK_USER env variable is set, store only if the message came from that user.
 def should_store_message?(params)
