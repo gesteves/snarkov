@@ -172,14 +172,10 @@ end
 
 def mute_bot(text)
   time = text.scan(/\d+/).first.nil? ? 60 : text.scan(/\d+/).first.to_i
-  minutes = [time, 60].min
-  if minutes > 0
-    $redis.setex('snarkov:shush', minutes * 60, 'true')
-    puts "[LOG] Shutting up: #{minutes} minutes"
-    '🤐'
-  else
-    '🤔'
-  end
+  minutes = [[time.abs, 60].min, 0].max
+  $redis.setex('snarkov:shush', minutes * 60, 'true')
+  puts "[LOG] Shutting up: #{minutes} minutes"
+  ['😴', '🤐', '😶'].sample
 end
 
 def build_markov(opts = {})
