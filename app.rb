@@ -358,8 +358,8 @@ def import_history(channel_id, opts = {})
   request = HTTParty.get(uri)
   response = JSON.parse(request.body)
   if response['ok']
-    # Find all messages that are plain messages (no subtype), are not hidden
-    messages = response['messages'].select { |m| m['subtype'].nil? && m['hidden'] != true && !m['user'].nil? }
+    # Find all messages that are plain messages (no subtype), are not hidden, and came from a human
+    messages = response['messages'].select { |m| m['subtype'].nil? && m['hidden'] != true && !m['user'].nil? && m['bot_id'].nil? }
 
     # Reject messages that match the ignore and reply keywords
     messages.reject! { |m| m['text'].match(settings.ignore_regex) } unless settings.ignore_regex.nil?
