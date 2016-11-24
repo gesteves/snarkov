@@ -46,52 +46,69 @@ end
 post "/markov" do
   begin
     response = ""
-    if params[:token] == ENV["OUTGOING_WEBHOOK_TOKEN"] &&
-       params[:user_id] != "USLACKBOT" &&
-       !params[:text].nil? &&
-       params[:text].match(settings.mute_regex)
-      time = params[:text].scan(/\d+/).first.nil? ? 60 : params[:text].scan(/\d+/).first.to_i
-      reply = shut_up(time)
-      response = json_response_for_slack(reply)
-    end
-
-    # Ignore if text is a cfbot command, or a bot response, or the outgoing integration token doesn't match
-    unless params[:text].nil? ||
-           params[:text].match(settings.ignore_regex) ||
-           params[:user_name].match(settings.ignore_regex) ||
-           params[:user_id] == "USLACKBOT" ||
-           params[:user_id] == "" ||
-           params[:token] != ENV["OUTGOING_WEBHOOK_TOKEN"]
-
-      # Store the text if someone is not manually invoking a reply
-      # and if the selected user is defined and matches
-      if !ENV["SLACK_USER"].nil?
-        if !params[:text].match(settings.reply_regex) && (ENV["SLACK_USER"] == params[:user_name] || ENV["SLACK_USER"] == params[:user_id])
-          $redis.pipelined do
-            store_markov(params[:text])
-          end
-        end
+    if is_valid_message?(params)
+      if is_mute_command?(params)
+        response = mute_bot(params[:text])
       else
-        if !params[:text].match(settings.reply_regex)
-          $redis.pipelined do
-            store_markov(params[:text])
-          end
-        end
+        store_message(params)
+        response = build_markov if should_reply?(params)
       end
-
-      # Reply if the bot isn't shushed AND either the random number is under the threshold OR the bot was invoked
-      if !$redis.exists("snarkov:shush") && (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_regex))
-        reply = build_markov
-        response = json_response_for_slack(reply)
-      end
+      code = 200
+    else
+      code = 400
     end
   rescue
     puts "[ERROR] #{e}"
-    response = ""
+    code = 500
   end
 
-  status 200
-  body response
+  status code
+  body json_response_for_slack(response)
+end
+
+# If the token doesn't match, the user is slackbot (or any other integration) or blank,
+# or there's no text, the message isn't valid.
+def is_valid_message?(params)
+  params[:token] == ENV["OUTGOING_WEBHOOK_TOKEN"] && params[:user_id] != "USLACKBOT" && params[:user_id] != "" && !params[:text].nil?
+end
+
+def is_mute_command?(params)
+  params[:text].match(settings.mute_regex)
+end
+
+# If the bot isn't muted, and either random chance or the reply keyword is invoked,
+# then the bot will send back a reply.
+def should_reply?(params)
+  !$redis.exists("snarkov:shush") && (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_regex))
+end
+
+# If the reply keyword wasn't invoked and the ignore keyword isn't invoked,
+# store the message as a markov chain.
+# If the SLACK_USER env variable is set, store only if the message came from that user.
+def store_message(params)
+  if !params[:text].match(settings.reply_regex) && !params[:text].match(settings.ignore_regex) && !params[:user_name].match(settings.ignore_regex)
+    if ENV["SLACK_USER"].nil?
+      $redis.pipelined do
+        store_markov(params[:text])
+      end
+    elsif ENV["SLACK_USER"] == params[:user_name] || ENV["SLACK_USER"] == params[:user_id]
+      $redis.pipelined do
+        store_markov(params[:text])
+      end
+    end
+  end
+end
+
+def mute_bot(text)
+  time = text.scan(/\d+/).first.nil? ? 60 : text.scan(/\d+/).first.to_i
+  minutes = [time, 60].min
+  if minutes > 0
+    $redis.setex("snarkov:shush", minutes * 60, "true")
+    puts "[LOG] Shutting up: #{minutes} minutes"
+    '🤐'
+  else
+    '🤔'
+  end
 end
 
 def store_markov(text)
@@ -173,19 +190,6 @@ def get_next_word(first_word, second_word)
   next_word = responses.sample
   puts responses.size == 0 ? "[LOG]     \"#{first_word} #{second_word}\" -> #{responses.to_s}" : "[LOG]     \"#{first_word} #{second_word}\" -> #{responses.to_s} -> \"#{next_word}\""
   next_word
-end
-
-def shut_up(minutes = 60)
-  minutes = [minutes, 60*24].min
-  if minutes > 0
-    $redis.setex("snarkov:shush", minutes * 60, "true")
-    puts "[LOG] Shutting up: #{minutes} minutes"
-    if minutes == 1
-      "ok, i'll shut up for #{minutes} minute"
-    else
-      "ok, i'll shut up for #{minutes} minutes"
-    end
-  end
 end
 
 def markov_topic(channel_id)
