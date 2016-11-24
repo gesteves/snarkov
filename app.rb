@@ -348,7 +348,6 @@ def get_channel_name(channel_id)
       channel_name = "##{channel.last}"
     end
     $memcached.set(cache_key, channel_name, 60 * 60 * 24)
-    channel_name
   end
 
   channel_name
