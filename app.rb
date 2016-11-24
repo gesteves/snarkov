@@ -72,7 +72,6 @@ end
 post '/markov' do
   begin
     response = ''
-    puts "[LOG] Incoming message: #{params.to_s}"
     if is_valid_message?(params)
       if is_mute_command?(params)
         response = mute_bot(params[:text])
