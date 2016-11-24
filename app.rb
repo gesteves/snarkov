@@ -125,8 +125,8 @@ def process_markov(text)
   sentences = text.split(/\.\s+|\n+/)
   sentences.each do |t|
     # Horrible chain of regex to simplify and normalize strings
-    text = t.gsub(/<@([\w]+)>:?/){ |m| get_slack_name($1) }           # Replace user tags with first names
-            .gsub(/<#([\w|-]+)>/){ |m| get_channel_name($1) }           # Replace channel tags with channel names
+    text = t.gsub(/<@([\.\w|-]+)>:?/){ |m| get_slack_name($1) }       # Replace user tags with first names
+            .gsub(/<#([\w|-]+)>/){ |m| get_channel_name($1) }         # Replace channel tags with channel names
             .gsub(/<.*?>:?/, "")                                      # Remove links
             .gsub(/:-?\(/, ":disappointed:")                          # Replace :( with :dissapointed:
             .gsub(/:-?\)/, ":smiley:")                                # Replace :) with :smiley:
@@ -136,7 +136,7 @@ def process_markov(text)
             .gsub(/[‘’]/,"\'")                                        # Replace single curly quotes with straight quotes
             .gsub(/\s_|_\s|_[,\.\?!]|^_|_$/, " ")                     # Remove underscores for _emphasis_
             .gsub(/&lt;.*?&gt;|&lt;|&gt;|[\*`<>"“”•~\(\)\[\]{}]|^\s*-/, "") # Remove extraneous characters
-            .gsub(/[,;.\s]+$/, "")                                      # Remove trailing punctuation
+            .gsub(/[,;.\s]+$/, "")                                    # Remove trailing punctuation
             .gsub(/:shrug:/, '¯\_(ツ)_/¯')                            # Put the shrug back
             .downcase
             .strip
@@ -234,6 +234,7 @@ end
 
 def get_slack_name(slack_id)
   username = ""
+  slack_id = slack_id.split('|').first
   uri = "https://slack.com/api/users.info?token=#{ENV["API_TOKEN"]}&user=#{slack_id}"
   request = HTTParty.get(uri)
   response = JSON.parse(request.body)
@@ -304,10 +305,15 @@ def import_history(channel_id, opts = {})
   request = HTTParty.get(uri)
   response = JSON.parse(request.body)
   if response["ok"]
-    # Find all messages that are plain messages (no subtype), are not hidden, are not from a bot (integrations, etc.) and are not cfbot commands
-    messages = response["messages"].find_all{ |m| m["subtype"].nil? && m["hidden"] != true && m["bot_id"].nil? && !m["user"].nil? && !m["text"].match(settings.reply_regex) && !m["text"].match(settings.ignore_regex) }
+    # Find all messages that are plain messages (no subtype), are not hidden
+    messages = response["messages"].select { |m| m["subtype"].nil? && m["hidden"] != true && !m["user"].nil? }
+
+    # Reject messages that match the ignore and reply keywords
+    messages.reject! { |m| m["text"].match(settings.ignore_regex) } unless settings.ignore_regex.nil?
+    messages.reject! { |m| m["text"].match(settings.reply_regex) } unless settings.reply_regex.nil?
+
     # Filter by user id, if necessary
-    messages = messages.find_all{ |m| m["user"] == options[:user_id] } unless options[:user_id].nil?
+    messages.select! { |m| m["user"] == options[:user_id] } unless options[:user_id].nil?
 
     if messages.size > 0
       puts "\nImporting #{messages.size} messages from #{DateTime.strptime(messages.first["ts"],"%s").strftime("%c")} to #{DateTime.strptime(messages.last["ts"],"%s").strftime("%c")}\n\n" if messages.size > 0
