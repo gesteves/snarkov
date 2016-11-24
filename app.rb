@@ -180,7 +180,6 @@ def build_markov(opts = {})
   initial_words = $redis.lrange("snarkov:initial_words", 0, -1).sample
 
   unless initial_words.nil?
-    puts "[LOG] Starting sentence with \"#{initial_words}\""
     # Split the key into the two words and add them to the phrase array
     initial_words = initial_words.split(" ")
     if initial_words.size == 1
@@ -207,10 +206,7 @@ def build_markov(opts = {})
 end
 
 def get_next_word(first_word, second_word)
-  responses = $redis.lrange("#{first_word} #{second_word}", 0, -1)
-  next_word = responses.sample
-  puts responses.size == 0 ? "[LOG]     \"#{first_word} #{second_word}\" -> #{responses.to_s}" : "[LOG]     \"#{first_word} #{second_word}\" -> #{responses.to_s} -> \"#{next_word}\""
-  next_word
+  $redis.lrange("#{first_word} #{second_word}", 0, -1).sample
 end
 
 def markov_topic(channel_id)
