@@ -43,6 +43,14 @@ get "/" do
   "hi."
 end
 
+options '/markov' do
+  status 200
+  headers "Access-Control-Allow-Origin" => "*"
+  headers "Access-Control-Allow-Methods" => "OPTIONS, GET"
+  headers "Access-Control-Allow-Headers" => "Content-Type"
+  body ''
+end
+
 get "/markov" do
   if params[:token] == ENV["OUTGOING_WEBHOOK_TOKEN"]
     status 200
