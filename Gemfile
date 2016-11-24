@@ -1,11 +1,11 @@
-source "https://rubygems.org"
-ruby "2.3.1"
+source 'https://rubygems.org'
+ruby '2.3.1'
 
-gem "sinatra"
-gem "thin"
-gem "redis"
-gem "httparty"
-gem "dotenv"
-gem "foreman"
-gem "rake"
-gem "dalli"
+gem 'sinatra'
+gem 'thin'
+gem 'redis'
+gem 'httparty'
+gem 'dotenv'
+gem 'foreman'
+gem 'rake'
+gem 'dalli'
