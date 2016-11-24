@@ -5,6 +5,7 @@ require "httparty"
 require "date"
 require "redis"
 require "dotenv"
+require "dalli"
 
 configure do
   # Load .env vars
@@ -37,6 +38,12 @@ configure do
     uri = URI.parse(ENV["REDISCLOUD_URL"] || ENV["REDIS_URL"])
   end
   $redis = Redis.new(host: uri.host, port: uri.port, password: uri.password)
+
+  if ENV['MEMCACHEDCLOUD_SERVERS'].nil?
+    $memcached = Dalli::Client.new('localhost:11211')
+  else
+    $memcached = Dalli::Client.new(ENV['MEMCACHEDCLOUD_SERVERS'].split(','), username: ENV['MEMCACHEDCLOUD_USERNAME'], password: ENV['MEMCACHEDCLOUD_PASSWORD'])
+  end
 end
 
 get "/" do
@@ -229,68 +236,121 @@ def json_response_for_slack(reply)
 end
 
 def get_slack_name(slack_id)
-  username = ""
   slack_id = slack_id.split('|').first
-  uri = "https://slack.com/api/users.info?token=#{ENV["API_TOKEN"]}&user=#{slack_id}"
-  request = HTTParty.get(uri)
-  response = JSON.parse(request.body)
-  if response["ok"]
-    user = response["user"]
-    if !user["profile"].nil? && !user["profile"]["first_name"].nil?
-      username = user["profile"]["first_name"]
-    else
-      username = user["name"]
-    end
-  else
-    puts "[ERROR] fetching user: #{response["error"]}" unless response["error"].nil?
-  end
-  username
-end
+  cache_key = "slack:user:#{slack_id}"
+  name = $memcached.get(cache_key)
 
-def get_slack_user_id(username)
-  user_id = nil
-  uri = "https://slack.com/api/users.list?token=#{ENV["API_TOKEN"]}"
-  request = HTTParty.get(uri)
-  response = JSON.parse(request.body)
-  if response["ok"]
-    user = response["members"].find { |u| u["name"] == username.downcase }
-    user_id = "#{user["id"]}" unless user.nil?
-  else
-    puts "[ERROR] Error fetching user ID: #{response["error"]}" unless response["error"].nil?
-  end
-  user_id
-end
-
-def get_channel_id(channel_name)
-  uri = "https://slack.com/api/channels.list?token=#{ENV["API_TOKEN"]}"
-  request = HTTParty.get(uri)
-  response = JSON.parse(request.body)
-  if response["ok"]
-    channel = response["channels"].find { |u| u["name"] == channel_name.gsub("#","") }
-    channel_id = channel["id"] unless channel.nil?
-  else
-    puts "[ERROR] Error fetching channel id: #{response["error"]}" unless response["error"].nil?
-    channel_id = ""
-  end
-  channel_id
-end
-
-def get_channel_name(channel_id)
-  channel_name = ""
-  channel = channel_id.split('|')
-
-  if channel.size == 1
-    uri = "https://slack.com/api/channels.info?token=#{ENV["API_TOKEN"]}&channel=#{channel.first}"
+  if name.nil?
+    uri = "https://slack.com/api/users.info?token=#{ENV["API_TOKEN"]}&user=#{slack_id}"
     request = HTTParty.get(uri)
     response = JSON.parse(request.body)
     if response["ok"]
-      channel_name = "##{response["channel"]["name"]}"
+      user = response["user"]
+      if !user["profile"].nil? && !user["profile"]["first_name"].nil?
+        name = user["profile"]["first_name"]
+      else
+        name = user["name"]
+      end
     else
-      puts "[ERROR] Error fetching channel name: #{response["error"]}" unless response["error"].nil?
+      name = ""
+      puts "[ERROR] fetching user: #{response["error"]}" unless response["error"].nil?
     end
-  else
-    channel_name = "##{channel.last}"
+    $memcached.set(cache_key, name, 60 * 60 * 24 * 30)
   end
+  name
+end
+
+def get_slack_user_id(username)
+  cache_key = "slack:user_id:#{username}"
+  user_id = $memcached.get(cache_key)
+
+  if user_id.nil?
+    users_list = get_users_list
+    if !users_list.nil?
+      users = JSON.parse(users_list)["members"]
+      user = users["members"].find { |u| u["name"] == username.downcase }
+      user_id = user["id"] unless user.nil?
+      $memcached.set(cache_key, user_id, 60 * 60 * 24 * 30)
+    end
+  end
+
+  user_id
+end
+
+def get_users_list
+  cache_key = "slack:users_list"
+  users_list = $memcached.get(cache_key)
+  if users_list.nil?
+    uri = "https://slack.com/api/users.list?token=#{ENV["API_TOKEN"]}"
+    request = HTTParty.get(uri)
+    response = JSON.parse(request.body)
+    if response["ok"]
+      users_list = request.body
+      $memcached.set(cache_key, users_list, 60 * 60 * 24 * 30)
+    else
+      puts "[ERROR] Error fetching user ID: #{response["error"]}" unless response["error"].nil?
+    end
+  end
+  users_list
+end
+
+def get_channel_id(channel_name)
+  cache_key = "slack:channel_id:#{channel_name}"
+  channel_id = $memcached.get(cache_key)
+
+  if channel_id.nil?
+    channels_list = get_channels_list
+    if !channels_list.nil?
+      channels = JSON.parse(channels_list)["channels"]
+      channel = channels.find { |c| c["name"] == channel_name.gsub("#","") }
+      channel_id = channel["id"] unless channel.nil?
+      $memcached.set(cache_key, channel_id, 60 * 60 * 24 * 30)
+    end
+  end
+
+  channel_id
+end
+
+def get_channels_list
+  cache_key = "slack:channels_list"
+  channels_list = $memcached.get(cache_key)
+  if channels_list.nil?
+    uri = "https://slack.com/api/channels.list?token=#{ENV["API_TOKEN"]}"
+    request = HTTParty.get(uri)
+    response = JSON.parse(request.body)
+    if response["ok"]
+      channels_list = request.body
+      $memcached.set(cache_key, channels_list, 60 * 60 * 24 * 30)
+    else
+      puts "[ERROR] Error fetching channel id: #{response["error"]}" unless response["error"].nil?
+    end
+  end
+  channels_list
+end
+
+def get_channel_name(channel_id)
+  cache_key = "slack:channel:#{channel_id}"
+  channel_name = $memcached.get(cache_key)
+
+  if channel_name.nil?
+    channel = channel_id.split('|')
+    if channel.size == 1
+      uri = "https://slack.com/api/channels.info?token=#{ENV["API_TOKEN"]}&channel=#{channel.first}"
+      request = HTTParty.get(uri)
+      response = JSON.parse(request.body)
+      if response["ok"]
+        channel_name = "##{response["channel"]["name"]}"
+      else
+        channel_name = ""
+        puts "[ERROR] Error fetching channel name: #{response["error"]}" unless response["error"].nil?
+      end
+    else
+      channel_name = "##{channel.last}"
+    end
+    $memcached.set(cache_key, channel_name, 60 * 60 * 24 * 30)
+    channel_name
+  end
+
   channel_name
 end
 
