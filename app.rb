@@ -255,7 +255,7 @@ def get_slack_name(slack_id)
       name = ''
       puts "[ERROR] fetching user: #{response['error']}" unless response['error'].nil?
     end
-    $memcached.set(cache_key, name, 60 * 60 * 24 * 30)
+    $memcached.set(cache_key, name, 60 * 60 * 24)
   end
   name
 end
@@ -270,7 +270,7 @@ def get_slack_user_id(username)
       users = JSON.parse(users_list)['members']
       user = users['members'].find { |u| u['name'] == username.downcase }
       user_id = user['id'] unless user.nil?
-      $memcached.set(cache_key, user_id, 60 * 60 * 24 * 30)
+      $memcached.set(cache_key, user_id, 60 * 60 * 24)
     end
   end
 
@@ -286,7 +286,7 @@ def get_users_list
     response = JSON.parse(request.body)
     if response['ok']
       users_list = request.body
-      $memcached.set(cache_key, users_list, 60 * 60 * 24 * 30)
+      $memcached.set(cache_key, users_list, 60 * 60 * 24)
     else
       puts "[ERROR] Error fetching user ID: #{response['error']}" unless response['error'].nil?
     end
@@ -304,7 +304,7 @@ def get_channel_id(channel_name)
       channels = JSON.parse(channels_list)['channels']
       channel = channels.find { |c| c['name'] == channel_name.gsub('#','') }
       channel_id = channel['id'] unless channel.nil?
-      $memcached.set(cache_key, channel_id, 60 * 60 * 24 * 30)
+      $memcached.set(cache_key, channel_id, 60 * 60 * 24)
     end
   end
 
@@ -320,7 +320,7 @@ def get_channels_list
     response = JSON.parse(request.body)
     if response['ok']
       channels_list = request.body
-      $memcached.set(cache_key, channels_list, 60 * 60 * 24 * 30)
+      $memcached.set(cache_key, channels_list, 60 * 60 * 24)
     else
       puts "[ERROR] Error fetching channel id: #{response['error']}" unless response['error'].nil?
     end
@@ -347,7 +347,7 @@ def get_channel_name(channel_id)
     else
       channel_name = "##{channel.last}"
     end
-    $memcached.set(cache_key, channel_name, 60 * 60 * 24 * 30)
+    $memcached.set(cache_key, channel_name, 60 * 60 * 24)
     channel_name
   end
 
