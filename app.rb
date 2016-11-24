@@ -11,10 +11,21 @@ configure do
   Dotenv.load
   # Disable output buffering
   $stdout.sync = true
-  # Exclude messages that match this regex
-  set :ignore_regex, Regexp.new(ENV["IGNORE_REGEX"], "i")
+
+  # Don't store messages that match this regex
+  if ENV["IGNORE_REGEX"].nil?
+    set :ignore_regex, nil
+  else
+    set :ignore_regex, Regexp.new(ENV["IGNORE_REGEX"], "i")
+  end
+
   # Respond to messages that match this
-  set :reply_regex, Regexp.new(ENV["REPLY_REGEX"], "i")
+  if ENV["REPLY_REGEX"].nil?
+    set :reply_regex, nil
+  else
+    set :reply_regex, Regexp.new(ENV["REPLY_REGEX"], "i")
+  end
+
   # Mute if this message is received
   set :mute_regex, Regexp.new(ENV["MUTE_REGEX"], "i")
 
@@ -50,14 +61,14 @@ post "/markov" do
       if is_mute_command?(params)
         response = mute_bot(params[:text])
       else
-        store_message(params)
+        store_message(params[:text]) if should_store_message?(params)
         response = build_markov if should_reply?(params)
       end
       code = 200
     else
       code = 400
     end
-  rescue
+  rescue => e
     puts "[ERROR] #{e}"
     code = 500
   end
@@ -79,23 +90,23 @@ end
 # If the bot isn't muted, and either random chance or the reply keyword is invoked,
 # then the bot will send back a reply.
 def should_reply?(params)
-  !$redis.exists("snarkov:shush") && (rand <= ENV["RESPONSE_CHANCE"].to_f || params[:text].match(settings.reply_regex))
+  !$redis.exists("snarkov:shush") &&
+  (settings.ignore_regex.nil? || !params[:text].match(settings.ignore_regex)) &&
+  (rand <= ENV["RESPONSE_CHANCE"].to_f || (!settings.reply_regex.nil? && params[:text].match(settings.reply_regex)))
 end
 
 # If the reply keyword wasn't invoked and the ignore keyword isn't invoked,
 # store the message as a markov chain.
 # If the SLACK_USER env variable is set, store only if the message came from that user.
-def store_message(params)
-  if !params[:text].match(settings.reply_regex) && !params[:text].match(settings.ignore_regex) && !params[:user_name].match(settings.ignore_regex)
-    if ENV["SLACK_USER"].nil?
-      $redis.pipelined do
-        process_markov(params[:text])
-      end
-    elsif ENV["SLACK_USER"] == params[:user_name] || ENV["SLACK_USER"] == params[:user_id]
-      $redis.pipelined do
-        process_markov(params[:text])
-      end
-    end
+def should_store_message?(params)
+  (settings.ignore_regex.nil? || !params[:text].match(settings.ignore_regex)) &&
+  (settings.reply_regex.nil? || !params[:text].match(settings.reply_regex)) &&
+  (ENV["SLACK_USER"].nil? || ENV["SLACK_USER"] == params[:user_name] || ENV["SLACK_USER"] == params[:user_id])
+end
+
+def store_message(text)
+  $redis.pipelined do
+    process_markov(text)
   end
 end
 

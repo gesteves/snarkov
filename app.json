@@ -31,14 +31,12 @@
       "value": "100"
     },
     "REPLY_REGEX": {
-      "description": "The bot will reply to messages matching this regex",
-      "required": true,
-      "value": "(sn|m)arkov"
+      "description": "The bot will always reply to messages matching this regex",
+      "required": false
     },
     "IGNORE_REGEX": {
-      "description": "The bot will not store messages matching this regex",
-      "required": true,
-      "value": "(sn|m)arkov"
+      "description": "The bot will not store or reply to messages matching this regex",
+      "required": false
     },
     "MUTE_REGEX": {
       "description": "The bot will mute if this message is received",
