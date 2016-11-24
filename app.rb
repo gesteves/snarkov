@@ -234,17 +234,15 @@ end
 
 def get_slack_name(slack_id)
   username = ""
-  uri = "https://slack.com/api/users.list?token=#{ENV["API_TOKEN"]}"
+  uri = "https://slack.com/api/users.info?token=#{ENV["API_TOKEN"]}&user=#{slack_id}"
   request = HTTParty.get(uri)
   response = JSON.parse(request.body)
   if response["ok"]
-    user = response["members"].find { |u| u["id"] == slack_id }
-    unless user.nil?
-      if !user["profile"].nil? && !user["profile"]["first_name"].nil?
-        username = user["profile"]["first_name"]
-      else
-        username = user["name"]
-      end
+    user = response["user"]
+    if !user["profile"].nil? && !user["profile"]["first_name"].nil?
+      username = user["profile"]["first_name"]
+    else
+      username = user["name"]
     end
   else
     puts "[ERROR] fetching user: #{response["error"]}" unless response["error"].nil?
@@ -282,20 +280,19 @@ end
 
 def get_channel_name(channel_id)
   channel_name = ""
-  channel_id = channel_id.split('|')
+  channel = channel_id.split('|')
 
-  if channel_id.size == 1
-    uri = "https://slack.com/api/channels.list?token=#{ENV["API_TOKEN"]}"
+  if channel.size == 1
+    uri = "https://slack.com/api/channels.info?token=#{ENV["API_TOKEN"]}&channel=#{channel.first}"
     request = HTTParty.get(uri)
     response = JSON.parse(request.body)
     if response["ok"]
-      channel = response["channels"].find { |u| u["id"] == channel_id.first }
-      channel_name = "##{channel["name"]}" unless channel.nil?
+      channel_name = "##{response["channel"]["name"]}"
     else
       puts "[ERROR] Error fetching channel name: #{response["error"]}" unless response["error"].nil?
     end
   else
-    channel_name = "##{channel_id.last}"
+    channel_name = "##{channel.last}"
   end
   channel_name
 end
@@ -332,7 +329,7 @@ def import_history(channel_id, opts = {})
 end
 
 def set_topic(channel_id, topic)
-  uri = "https://slack.com/api/channels.setTopic?token=#{ENV["API_TOKEN"]}&channel=#{channel_id}&count=1000"
+  uri = "https://slack.com/api/channels.setTopic"
   request = HTTParty.post(uri, body: {
     token: ENV["API_TOKEN"],
     channel: channel_id,
