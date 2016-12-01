@@ -80,7 +80,7 @@ post '/markov' do
       if is_mute_command?(params)
         response = mute_bot(params[:text])
       elsif is_speak_command?(params)
-        response = audio_markov
+        response = audio_markov(params)
       else
         store_message(params[:text]) if should_store_message?(params)
         response = build_markov if should_reply?(params)
@@ -239,36 +239,27 @@ def markov_topic(channel_id)
   end
 end
 
-def audio_markov
+def audio_markov(params)
   text = ''
   min_length = ENV['MIN_LENGTH'] || 5
   while text.split(' ').size < min_length
     text = build_markov
   end
-  url = generate_mp3_url(text)
-  file = download_file(url)
-  s3_url = upload_to_s3(file)
+  polly = synthesize_speech(text)
+  s3_url = upload_to_s3(polly.audio_stream, params[:team_id], params[:channel_id])
   "<#{s3_url}|#{text}>"
 end
 
-def generate_mp3_url(text)
-  signer = Aws::Polly::Presigner.new(credentials: Aws::Credentials.new(ENV['AWS_ACCESS_KEY'], ENV['AWS_SECRET_KEY']), region: 'us-east-1')
-  signer.synthesize_speech_presigned_url(output_format: 'mp3', text: text, voice_id: ENV['POLLY_VOICE'])
+def synthesize_speech(text)
+  client = Aws::Polly::Client.new(credentials: Aws::Credentials.new(ENV['AWS_ACCESS_KEY'], ENV['AWS_SECRET_KEY']), region: 'us-east-1')
+  client.synthesize_speech(output_format: 'mp3', text: text, voice_id: ENV['POLLY_VOICE'], lexicon_names: ['lexicon'])
 end
 
-def download_file(url)
-  tmp = Tempfile.new([Time.now.to_i.to_s, '.mp3'])
-  tmp.binmode
-  tmp.write(HTTParty.get(url).body)
-  tmp.flush
-  File.new(tmp)
-end
-
-def upload_to_s3(file)
+def upload_to_s3(audio_stream, team_id, channel_id)
   client = Aws::S3::Client.new(access_key_id: ENV['AWS_ACCESS_KEY'], secret_access_key: ENV['AWS_SECRET_KEY'], region: 'us-east-1')
   s3 = Aws::S3::Resource.new(client: client)
-  obj = s3.bucket(ENV['S3_BUCKET']).object(File.basename(file))
-  obj.upload_file(file.path, { acl: 'public-read' })
+  obj = s3.bucket(ENV['S3_BUCKET']).object("#{team_id}/#{channel_id}/#{Digest::MD5.hexdigest(Time.now.to_i.to_s)}.mp3")
+  obj.put({ body: audio_stream, acl: 'public-read' })
   obj.public_url
 end
 
