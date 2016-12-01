@@ -8,6 +8,7 @@ require 'redis'
 require 'dotenv'
 require 'dalli'
 require 'aws-sdk'
+require 'tempfile'
 
 configure do
   # Load .env vars
@@ -428,10 +429,13 @@ def set_topic(channel_id, topic)
 end
 
 def upload_file(url, title, channel_id)
+  tmp = Tempfile.new([Time.now.to_i.to_s, '.mp3'])
+  tmp << HTTParty.get(url).body
   opts = {
     token: ENV['API_TOKEN'],
     title: title,
-    file: File.new(HTTParty.get(url).body),
+    file: tmp,
+    filetype: 'mp3'
     channels: channel_id
   }
   request = HTTMultiParty.post('https://slack.com/api/files.upload', body: opts)
