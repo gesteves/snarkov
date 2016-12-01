@@ -2,13 +2,13 @@
 require 'sinatra'
 require 'json'
 require 'httparty'
-require 'httmultiparty'
 require 'date'
 require 'redis'
 require 'dotenv'
 require 'dalli'
 require 'aws-sdk'
 require 'tempfile'
+require 'rest-client'
 
 configure do
   # Load .env vars
@@ -422,7 +422,7 @@ def set_topic(channel_id, topic)
     channel: channel_id,
     topic: topic
   })
-  response = request.body
+  response = JSON.parse(request.body)
   if response['ok']
     puts "[LOG] Channel topic set to \"#{topic}\""
   else
@@ -432,16 +432,21 @@ end
 
 def upload_file(url, title, channel_id)
   tmp = Tempfile.new([Time.now.to_i.to_s, '.mp3'])
-  tmp << HTTParty.get(url).body
+  tmp.binmode
+  tmp.write(HTTParty.get(url).body)
+  tmp.flush
+
   opts = {
     token: ENV['API_TOKEN'],
     title: title,
-    file: tmp,
+    file: File.new(tmp),
     filetype: 'mp3',
-    channels: channel_id
+    filename: "#{title}.mp3",
+    channels: channel_id,
   }
-  request = HTTMultiParty.post('https://slack.com/api/files.upload', body: opts)
-  response = request.body
+  puts "[LOG] Uploading #{opts.to_s} to #{channel_id}"
+  request = RestClient.post('https://slack.com/api/files.upload', opts)
+  response = JSON.parse(request.body)
   if response['ok']
     puts "[LOG] File uploaded with title \"#{title}\""
   else
