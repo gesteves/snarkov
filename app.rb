@@ -242,7 +242,8 @@ end
 
 def speak_markov(channel_id)
   text = ''
-  while text.size < 3 || text.size > 250
+  min_length = ENV['MIN_LENGTH'] || 5
+  while text.split(' ').size < min_length
     text = build_markov
   end
   url = generate_mp3_url(text)
