@@ -83,7 +83,7 @@ post '/markov' do
         response = audio_markov(params)
       else
         store_message(params[:text]) if should_store_message?(params)
-        response = build_markov if should_reply?(params)
+        response = audio_markov(params) if should_reply?(params)
       end
       code = 200
     else
@@ -240,14 +240,15 @@ def markov_topic(channel_id)
 end
 
 def audio_markov(params)
-  text = ''
-  min_length = ENV['MIN_LENGTH'] || 5
-  while text.split(' ').size < min_length
-    text = build_markov
+  text = build_markov
+  min_length = ENV['MIN_LENGTH'] || 3
+  response = if text.split(' ').size < min_length
+    text
+  else
+    polly = synthesize_speech(text)
+    s3_url = upload_to_s3(polly.audio_stream, params[:team_id], params[:channel_id])
+    "<#{s3_url}|#{text}>"
   end
-  polly = synthesize_speech(text)
-  s3_url = upload_to_s3(polly.audio_stream, params[:team_id], params[:channel_id])
-  "<#{s3_url}|#{text}>"
 end
 
 def synthesize_speech(text)
