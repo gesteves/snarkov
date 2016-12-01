@@ -431,7 +431,7 @@ def upload_file(url, title, channel_id)
   opts = {
     token: ENV['API_TOKEN'],
     title: title,
-    file: File.new(open(url).path),
+    file: File.new(HTTParty.get(url).body),
     channels: channel_id
   }
   request = HTTMultiParty.post('https://slack.com/api/files.upload', body: opts)
