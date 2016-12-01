@@ -252,9 +252,7 @@ end
 
 def generate_mp3_url(text)
   signer = Aws::Polly::Presigner.new(credentials: Aws::Credentials.new(ENV['AWS_ACCESS_KEY'], ENV['AWS_SECRET_KEY']), region: 'us-east-1')
-  url = signer.synthesize_speech_presigned_url(output_format: 'mp3', text: text, voice_id: ENV['POLLY_VOICE'])
-  puts "[LOG] Polly response: #{url}"
-  url
+  signer.synthesize_speech_presigned_url(output_format: 'mp3', text: text, voice_id: ENV['POLLY_VOICE'])
 end
 
 def json_response_for_slack(reply)
@@ -445,7 +443,6 @@ def upload_file(url, title, channel_id)
     filename: "#{title}.mp3",
     channels: channel_id,
   }
-  puts "[LOG] Uploading #{opts.to_s} to #{channel_id}"
   request = RestClient.post('https://slack.com/api/files.upload', opts)
   response = JSON.parse(request.body)
   if response['ok']
