@@ -2,10 +2,12 @@
 require 'sinatra'
 require 'json'
 require 'httparty'
+require 'httmultiparty'
 require 'date'
 require 'redis'
 require 'dotenv'
 require 'dalli'
+require 'aws-sdk'
 
 configure do
   # Load .env vars
@@ -29,6 +31,7 @@ configure do
 
   # Mute if this message is received
   set :mute_regex, Regexp.new(ENV['MUTE_REGEX'], 'i')
+  set :speak_regex, Regexp.new(ENV['SPEAK_REGEX'], 'i')
 
   # Set up redis
   case settings.environment
@@ -59,7 +62,7 @@ options '/markov' do
 end
 
 get '/markov' do
-  if params[:token] == ENV['OUTGOING_WEBHOOK_TOKEN']
+  if params[:token] == ENV['OUTGOING_WEBHOOK_TOKEN'] || settings.environment == :development
     status 200
     headers 'Access-Control-Allow-Origin' => '*'
     body build_markov
@@ -76,6 +79,8 @@ post '/markov' do
     if is_valid_message?(params)
       if is_mute_command?(params)
         response = mute_bot(params[:text])
+      elsif is_speak_command?(params)
+        speak_markov(params[:channel_id])
       else
         store_message(params[:text]) if should_store_message?(params)
         response = build_markov if should_reply?(params)
@@ -101,6 +106,10 @@ end
 
 def is_mute_command?(params)
   params[:text].match(settings.mute_regex)
+end
+
+def is_speak_command?(params)
+  params[:text].match(settings.speak_regex)
 end
 
 # If the bot isn't muted,
@@ -228,6 +237,20 @@ def markov_topic(channel_id)
     set_topic(channel_id, topic)
     $redis.setex("snarkov:topic_set:#{channel_id}", 24 * 60 * 60, 'true')
   end
+end
+
+def speak_markov(channel_id)
+  text = ''
+  while text.size < 3 || text.size > 250
+    text = build_markov
+  end
+  url = generate_mp3_url(text)
+  upload_file(url, text, channel_id)
+end
+
+def generate_mp3_url(text)
+  signer = Aws::Polly::Presigner.new(credentials: Aws::Credentials.new(ENV['AWS_ACCESS_KEY'], ENV['AWS_SECRET_KEY']), region: 'us-east-1')
+  signer.synthesize_speech_presigned_url(output_format: 'mp3', text: text, voice_id: ENV['POLLY_VOICE'])
 end
 
 def json_response_for_slack(reply)
@@ -401,5 +424,21 @@ def set_topic(channel_id, topic)
     puts "[LOG] Channel topic set to \"#{topic}\""
   else
     puts "[ERROR] Error setting channel topic: #{response['error']}"
+  end
+end
+
+def upload_file(url, title, channel_id)
+  opts = {
+    token: ENV['API_TOKEN'],
+    title: title,
+    file: File.new(open(url).path),
+    channels: channel_id
+  }
+  request = HTTMultiParty.post('https://slack.com/api/files.upload', body: opts)
+  response = request.body
+  if response['ok']
+    puts "[LOG] File uploaded with title \"#{title}\""
+  else
+    puts "[ERROR] Error uploading file: #{response['error']}"
   end
 end
