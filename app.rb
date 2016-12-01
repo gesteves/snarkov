@@ -8,7 +8,6 @@ require 'dotenv'
 require 'dalli'
 require 'aws-sdk'
 require 'tempfile'
-require 'rest-client'
 
 configure do
   # Load .env vars
@@ -81,7 +80,7 @@ post '/markov' do
       if is_mute_command?(params)
         response = mute_bot(params[:text])
       elsif is_speak_command?(params)
-        speak_markov(params[:channel_id])
+        response = audio_markov
       else
         store_message(params[:text]) if should_store_message?(params)
         response = build_markov if should_reply?(params)
@@ -240,19 +239,37 @@ def markov_topic(channel_id)
   end
 end
 
-def speak_markov(channel_id)
+def audio_markov
   text = ''
   min_length = ENV['MIN_LENGTH'] || 5
   while text.split(' ').size < min_length
     text = build_markov
   end
   url = generate_mp3_url(text)
-  upload_file(url, text, channel_id)
+  file = download_file(url)
+  s3_url = upload_to_s3(file)
+  "<#{s3_url}|#{text}>"
 end
 
 def generate_mp3_url(text)
   signer = Aws::Polly::Presigner.new(credentials: Aws::Credentials.new(ENV['AWS_ACCESS_KEY'], ENV['AWS_SECRET_KEY']), region: 'us-east-1')
   signer.synthesize_speech_presigned_url(output_format: 'mp3', text: text, voice_id: ENV['POLLY_VOICE'])
+end
+
+def download_file(url)
+  tmp = Tempfile.new([Time.now.to_i.to_s, '.mp3'])
+  tmp.binmode
+  tmp.write(HTTParty.get(url).body)
+  tmp.flush
+  File.new(tmp)
+end
+
+def upload_to_s3(file)
+  client = Aws::S3::Client.new(access_key_id: ENV['AWS_ACCESS_KEY'], secret_access_key: ENV['AWS_SECRET_KEY'], region: 'us-east-1')
+  s3 = Aws::S3::Resource.new(client: client)
+  obj = s3.bucket(ENV['S3_BUCKET']).object(File.basename(file))
+  obj.upload_file(file.path, { acl: 'public-read' })
+  obj.public_url
 end
 
 def json_response_for_slack(reply)
@@ -426,28 +443,5 @@ def set_topic(channel_id, topic)
     puts "[LOG] Channel topic set to \"#{topic}\""
   else
     puts "[ERROR] Error setting channel topic: #{response['error']}"
-  end
-end
-
-def upload_file(url, title, channel_id)
-  tmp = Tempfile.new([Time.now.to_i.to_s, '.mp3'])
-  tmp.binmode
-  tmp.write(HTTParty.get(url).body)
-  tmp.flush
-
-  opts = {
-    token: ENV['API_TOKEN'],
-    title: title,
-    file: File.new(tmp),
-    filetype: 'mp3',
-    filename: "#{title}.mp3",
-    channels: channel_id,
-  }
-  request = RestClient.post('https://slack.com/api/files.upload', opts)
-  response = JSON.parse(request.body)
-  if response['ok']
-    puts "[LOG] File uploaded with title \"#{title}\""
-  else
-    puts "[ERROR] Error uploading file: #{response['error']}"
   end
 end
