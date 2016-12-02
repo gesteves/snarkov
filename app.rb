@@ -234,8 +234,7 @@ end
 
 def audio_markov(params)
   text = build_markov
-  min_length = ENV['MIN_LENGTH'] || 3
-  response = if text.split(' ').size < min_length || ENV['AWS_ACCESS_KEY'].nil? || ENV['AWS_SECRET_KEY'].nil?
+  if ENV['AWS_ACCESS_KEY'].nil? || ENV['AWS_SECRET_KEY'].nil?
     text
   else
     polly = synthesize_speech(text)
