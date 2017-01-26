@@ -42,3 +42,12 @@ task :topic do
     puts "Completed in #{Time.now - start_time} seconds"
   end
 end
+
+desc 'Ingest passed string into database'
+task :ingest_string, [:text] do |_, args|
+  puts "\nImporting text to #{ENV['RACK_ENV']} (this will take a while)\n\n"
+  puts "Args: #{args}"
+  start_time = Time.now
+  store_message(args[:text])
+  puts "Completed in #{Time.now - start_time} seconds"
+end
