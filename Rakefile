@@ -43,12 +43,17 @@ task :topic do
   end
 end
 
-desc 'Ingest passed string into database'
-task :ingest_string, [:text] do |_, args|
-  puts "\nImporting text to #{ENV['RACK_ENV']} (this will take a while)\n\n"
-  text = args[:text].gsub('x21', '!')
-  puts "Args: #{text}"
+desc 'Ingest file into redis'
+
+# :file args should be name of .txt file in current dir
+task :ingest_file, [:file] do |_, args|
   start_time = Time.now
-  store_message(text)
+  puts "\nImporting text to #{ENV['RACK_ENV']} (this will take a while)\n\n"
+  content = File.read "#{args[:file]}.txt"
+  sentences = content.scan(/[^\.!?]+[\.!?]/).map(&:strip)
+  sentences.each do |s|
+    puts "storing sentence: #{s}"
+    store_message(s)
+  end
   puts "Completed in #{Time.now - start_time} seconds"
 end
