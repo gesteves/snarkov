@@ -46,8 +46,9 @@ end
 desc 'Ingest passed string into database'
 task :ingest_string, [:text] do |_, args|
   puts "\nImporting text to #{ENV['RACK_ENV']} (this will take a while)\n\n"
-  puts "Args: #{args}"
+  text = args[:text].gsub('x21', '!')
+  puts "Args: #{text}"
   start_time = Time.now
-  store_message(args[:text])
+  store_message(text)
   puts "Completed in #{Time.now - start_time} seconds"
 end
