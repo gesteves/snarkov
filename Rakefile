@@ -50,7 +50,7 @@ task :ingest_file, [:file] do |_, args|
   start_time = Time.now
   puts "\nImporting text to #{ENV['RACK_ENV']} (this will take a while)\n\n"
   content = File.read "#{args[:file]}.txt"
-  sentences = content.scan(/[^\.!?]+[\.!?]/).map(&:strip)
+  sentences = content.scan(/[^\.!?\n]+[\.!?\n]/).map(&:strip)
   sentences.each do |s|
     puts "storing sentence: #{s}"
     store_message(s)
