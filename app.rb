@@ -317,7 +317,7 @@ def get_users_list
     response = JSON.parse(request.body)
     if response['ok']
       users_list = request.body
-      $memcached.set(cache_key, users_list, 60 * 60 * 24)
+      #$memcached.set(cache_key, users_list, 60 * 60 * 24)
     else
       puts "[ERROR] Error fetching user ID: #{response['error']}" unless response['error'].nil?
     end
