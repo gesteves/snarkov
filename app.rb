@@ -299,7 +299,7 @@ def get_slack_user_id(username)
     users_list = get_users_list
     if !users_list.nil?
       users = JSON.parse(users_list)['members']
-      user = users['members'].find { |u| u['name'] == username.downcase }
+      user = users.find { |u| u['name'] == username.downcase }
       user_id = user['id'] unless user.nil?
       $memcached.set(cache_key, user_id, 60 * 60 * 24 * 365)
     end
