@@ -229,33 +229,6 @@ def markov_topic(channel_id)
   end
 end
 
-def audio_markov(params)
-  text = build_markov
-  if ENV['AWS_ACCESS_KEY'].nil? || ENV['AWS_SECRET_KEY'].nil?
-    text
-  else
-    polly = synthesize_speech(text)
-    s3_url = upload_to_s3(polly.audio_stream, params[:team_id], params[:channel_id])
-    "<#{s3_url}|#{text}>"
-  end
-end
-
-def synthesize_speech(text)
-  voice = ENV['POLLY_VOICE'] || 'Brian'
-  client = Aws::Polly::Client.new(credentials: Aws::Credentials.new(ENV['AWS_ACCESS_KEY'], ENV['AWS_SECRET_KEY']), region: 'us-east-1')
-  opts = { output_format: 'mp3', text: text, voice_id: voice }
-  opts[:lexicon_names] = ENV['POLLY_LEXICON'].split(',') unless ENV['POLLY_LEXICON'].nil?
-  client.synthesize_speech(opts)
-end
-
-def upload_to_s3(audio_stream, team_id, channel_id)
-  client = Aws::S3::Client.new(access_key_id: ENV['AWS_ACCESS_KEY'], secret_access_key: ENV['AWS_SECRET_KEY'], region: 'us-east-1')
-  s3 = Aws::S3::Resource.new(client: client)
-  obj = s3.bucket(ENV['S3_BUCKET']).object("#{team_id}/#{channel_id}/#{Digest::MD5.hexdigest(Time.now.to_i.to_s)}.mp3")
-  obj.put({ body: audio_stream, acl: 'public-read' })
-  obj.public_url
-end
-
 def json_response_for_slack(reply)
   response = { text: reply, link_names: 1 }
   response[:username] = ENV['BOT_USERNAME'] unless ENV['BOT_USERNAME'].nil?
