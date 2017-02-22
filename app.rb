@@ -82,16 +82,13 @@ post '/markov' do
         store_message(params[:text]) if should_store_message?(params)
         response = audio_markov(params) if should_reply?(params)
       end
-      code = 200
-    else
-      code = 400
     end
   rescue => e
     puts "[ERROR] #{e}"
     code = 500
   end
 
-  status code
+  status 200
   body json_response_for_slack(response)
 end
 
