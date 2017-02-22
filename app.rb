@@ -80,7 +80,7 @@ post '/markov' do
         response = mute_bot(params[:text])
       else
         store_message(params[:text]) if should_store_message?(params)
-        response = audio_markov(params) if should_reply?(params)
+        response = build_markov(params) if should_reply?(params)
       end
     end
   rescue => e
