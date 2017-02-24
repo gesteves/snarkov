@@ -9,7 +9,8 @@
   "repository": "https://github.com/gesteves/snarkov",
   "addons": [
     "heroku-redis",
-    "memcachedcloud"
+    "memcachedcloud",
+    "scheduler:standard"
   ],
   "success_url": "https://github.com/gesteves/snarkov#usage",
   "env": {
