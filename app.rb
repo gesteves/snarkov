@@ -278,20 +278,14 @@ def get_slack_user_id(username)
 end
 
 def get_users_list
-  cache_key = 'slack:users_list'
-  users_list = $memcached.get(cache_key)
-  if users_list.nil?
-    uri = "https://slack.com/api/users.list?token=#{ENV['API_TOKEN']}"
-    request = HTTParty.get(uri)
-    response = JSON.parse(request.body)
-    if response['ok']
-      users_list = request.body
-      #$memcached.set(cache_key, users_list, 60 * 60 * 24)
-    else
-      puts "[ERROR] Error fetching user ID: #{response['error']}" unless response['error'].nil?
-    end
+  uri = "https://slack.com/api/users.list?token=#{ENV['API_TOKEN']}"
+  request = HTTParty.get(uri)
+  response = JSON.parse(request.body)
+  if response['ok']
+    users_list = request.body
+  else
+    puts "[ERROR] Error fetching user ID: #{response['error']}" unless response['error'].nil?
   end
-  users_list
 end
 
 def get_channel_id(channel_name)
@@ -312,20 +306,14 @@ def get_channel_id(channel_name)
 end
 
 def get_channels_list
-  cache_key = 'slack:channels_list'
-  channels_list = $memcached.get(cache_key)
-  if channels_list.nil?
-    uri = "https://slack.com/api/channels.list?token=#{ENV['API_TOKEN']}"
-    request = HTTParty.get(uri)
-    response = JSON.parse(request.body)
-    if response['ok']
-      channels_list = request.body
-      $memcached.set(cache_key, channels_list, 60 * 60 * 24)
-    else
-      puts "[ERROR] Error fetching channel id: #{response['error']}" unless response['error'].nil?
-    end
+  uri = "https://slack.com/api/channels.list?token=#{ENV['API_TOKEN']}"
+  request = HTTParty.get(uri)
+  response = JSON.parse(request.body)
+  if response['ok']
+    channels_list = request.body
+  else
+    puts "[ERROR] Error fetching channel id: #{response['error']}" unless response['error'].nil?
   end
-  channels_list
 end
 
 def get_channel_name(channel_id)
