@@ -9,7 +9,7 @@ Snarkov is a Sinatra-based [Markov bot][mb] for [Slack][slack].
 
 ## Installation
 
-The simplest way to set up snarkov is using [Heroku][he] & Redis Cloud. Just press this button to deploy it:
+The simplest way to set up snarkov is using [Heroku][he]. Just press this button to deploy it:
 
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
 
@@ -22,7 +22,7 @@ You'll need to set up a Slack [outgoing webhook][ow] to send messages to snarkov
 
 ## Importing channels
 
-Snarkov works better if it has a lot of text to work with. To help populate it, you can feed it the entire history of a list of Slack channels. **Warning:** Depending on how many messages are in the channel's history, this might take a long time, and potentially fill up your free Redis Cloud account very quickly. You'll probably want to go to your Heroku dashboard and upgrade your Redis Cloud account to one of the paid levels before doing this.
+Snarkov works better if it has a lot of text to work with. To help populate it, you can feed it the entire history of a list of Slack channels. **Warning:** Depending on how many messages are in the channel's history, this might take a long time, and potentially fill up your free Heroku Redis account very quickly. You'll probably want to go to your Heroku dashboard and upgrade your Redis plan to one of the paid levels before doing this, or use the `DAYS` option to limit the amount of text you're importing.
 
 To populate redis in production, install the [Heroku Toolbelt](https://toolbelt.heroku.com) and run:
 
