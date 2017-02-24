@@ -74,7 +74,6 @@ end
 post '/markov' do
   begin
     response = ''
-    puts "[LOG] #{params.to_s}"
     if is_valid_message?(params)
       if is_mute_command?(params)
         response = mute_bot(params[:text])
@@ -84,8 +83,8 @@ post '/markov' do
       end
     end
   rescue => e
-    puts "[ERROR] #{e}"
-    code = 500
+    response = "[ERROR] #{e}"
+    puts response
   end
 
   status 200
