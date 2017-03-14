@@ -6,7 +6,6 @@ require 'date'
 require 'redis'
 require 'dotenv'
 require 'dalli'
-require 'aws-sdk'
 
 configure do
   # Load .env vars
