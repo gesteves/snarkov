@@ -7,7 +7,6 @@ require 'redis'
 require 'dotenv'
 require 'dalli'
 require 'aws-sdk'
-require 'tempfile'
 
 configure do
   # Load .env vars
