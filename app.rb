@@ -230,11 +230,7 @@ def markov_chat(channel_id)
   now = Time.now.getlocal('-05:00')
   chance = ENV['CHAT_CHANCE'].nil? ? 0.1 : ENV['CHAT_CHANCE'].to_f
   if !$redis.exists("snarkov:chat:#{channel_id}") && rand < chance && !now.saturday? && !now.sunday? && now.hour.between?(9, 18)
-    sentence = ''
-    while sentence.size < 3 || sentence.size > 250
-      sentence = build_markov
-    end
-    post_message(channel_id, sentence)
+    post_message(channel_id, build_markov)
     $redis.setex("snarkov:chat:#{channel_id}", 60 * 60, 'true')
   end
 end
