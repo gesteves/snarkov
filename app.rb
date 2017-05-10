@@ -402,7 +402,8 @@ def post_message(channel_id, text)
   request = HTTParty.post(uri, body: {
     token: ENV['API_TOKEN'],
     channel: channel_id,
-    text: text
+    text: text,
+    as_user: true
   })
   response = JSON.parse(request.body)
   if response['ok']
