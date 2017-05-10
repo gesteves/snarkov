@@ -42,3 +42,14 @@ task :topic do
     puts "Completed in #{Time.now - start_time} seconds"
   end
 end
+
+task :chat do
+  if ENV['CHANNEL'].nil?
+    puts 'You need to specify the name of the channel you wish to chat in, e.g. rake chat CHANNEL=\'#random\''
+  else
+    start_time = Time.now
+    channel_id = get_channel_id(ENV['CHANNEL'].strip)
+    markov_chat(channel_id)
+    puts "Completed in #{Time.now - start_time} seconds"
+  end
+end

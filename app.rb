@@ -226,6 +226,19 @@ def markov_topic(channel_id)
   end
 end
 
+def markov_chat(channel_id)
+  now = Time.now.getlocal('-05:00')
+  chance = ENV['CHAT_CHANCE'].nil? ? 0.1 : ENV['CHAT_CHANCE'].to_f
+  if !$redis.exists("snarkov:chat:#{channel_id}") && rand < chance && !now.saturday? && !now.sunday? && now.hour.between?(9, 18)
+    sentence = ''
+    while sentence.size < 3 || sentence.size > 250
+      sentence = build_markov
+    end
+    post_message(channel_id, sentence)
+    $redis.setex("snarkov:chat:#{channel_id}", 60 * 60, 'true')
+  end
+end
+
 def json_response_for_slack(reply)
   response = { text: reply, link_names: 1 }
   response[:username] = ENV['BOT_USERNAME'] unless ENV['BOT_USERNAME'].nil?
@@ -385,5 +398,20 @@ def set_topic(channel_id, topic)
     puts "[LOG] Channel topic set to \"#{topic}\""
   else
     puts "[ERROR] Error setting channel topic: #{response['error']}"
+  end
+end
+
+def post_message(channel_id, text)
+  uri = 'https://slack.com/api/chat.postMessage'
+  request = HTTParty.post(uri, body: {
+    token: ENV['API_TOKEN'],
+    channel: channel_id,
+    text: text
+  })
+  response = JSON.parse(request.body)
+  if response['ok']
+    puts "[LOG] Sent message \"#{text}\" to channel #{channel_id}"
+  else
+    puts "[ERROR] Error sending message: #{response['error']}"
   end
 end
