@@ -374,6 +374,7 @@ def import_history(channel_id, opts = {})
     # If there are more messages in the API call, make another call, starting with the timestamp of the last message
     if response['has_more'] && !response['messages'].last['ts'].nil? && response['messages'].last['ts'].to_i > options[:oldest]
       options[:latest] = response['messages'].last['ts']
+      sleep 1
       import_history(channel_id, options)
     end
   else
