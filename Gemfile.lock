@@ -18,7 +18,7 @@ GEM
     rack (2.2.3)
     rack-protection (2.1.0)
       rack
-    rake (13.0.1)
+    rake (13.0.3)
     redis (4.2.5)
     ruby2_keywords (0.0.2)
     sinatra (2.1.0)
