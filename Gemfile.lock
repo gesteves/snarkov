@@ -19,7 +19,7 @@ GEM
     rack-protection (2.1.0)
       rack
     rake (13.0.1)
-    redis (4.2.5)
+    redis (4.4.0)
     ruby2_keywords (0.0.2)
     sinatra (2.1.0)
       mustermann (~> 1.0)
