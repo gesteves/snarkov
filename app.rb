@@ -70,7 +70,6 @@ get '/markov' do
 end
 
 post '/markov' do
-  puts params
   begin
     response = ''
     if is_valid_message?(params)
@@ -105,7 +104,7 @@ end
 # and the reply keyword is invoked or the rand check passes,
 # then the bot will send back a reply.
 def should_reply?(params)
-  !$redis.exists('snarkov:shush') &&
+  !$redis.exists?('snarkov:shush') &&
   (settings.ignore_regex.nil? || !params[:text].match(settings.ignore_regex)) &&
   (rand <= ENV['RESPONSE_CHANCE'].to_f || (!settings.reply_regex.nil? && params[:text].match(settings.reply_regex)))
 end
@@ -217,7 +216,7 @@ end
 def markov_topic(channel_id)
   now = Time.now.getlocal('-05:00')
   chance = ENV['TOPIC_CHANGE_CHANCE'].nil? ? 0.1 : ENV['TOPIC_CHANGE_CHANCE'].to_f
-  if !$redis.exists("snarkov:topic_set:#{channel_id}") && rand < chance && !now.saturday? && !now.sunday? && now.hour.between?(9, 18)
+  if !$redis.exists?("snarkov:topic_set:#{channel_id}") && rand < chance && !now.saturday? && !now.sunday? && now.hour.between?(9, 18)
     topic = ''
     while topic.size < 3 || topic.size > 250
       topic = build_markov
