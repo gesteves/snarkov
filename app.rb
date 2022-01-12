@@ -70,6 +70,7 @@ get '/markov' do
 end
 
 post '/markov' do
+  puts params
   begin
     response = ''
     if is_valid_message?(params)
