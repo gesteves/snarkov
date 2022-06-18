@@ -2,7 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     daemons (1.4.0)
-    dalli (3.2.0)
+    dalli (3.2.2)
     dotenv (2.7.6)
     eventmachine (1.2.7)
     foreman (0.87.2)
