@@ -3,7 +3,7 @@ GEM
   specs:
     daemons (1.4.0)
     dalli (3.2.0)
-    dotenv (2.7.6)
+    dotenv (2.8.1)
     eventmachine (1.2.7)
     foreman (0.87.2)
     httparty (0.20.0)
