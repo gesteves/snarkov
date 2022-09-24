@@ -1,6 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    connection_pool (2.3.0)
     daemons (1.4.0)
     dalli (3.2.0)
     dotenv (2.7.6)
@@ -19,7 +20,10 @@ GEM
     rack-protection (2.1.0)
       rack
     rake (13.0.6)
-    redis (4.5.1)
+    redis (5.0.5)
+      redis-client (>= 0.9.0)
+    redis-client (0.9.0)
+      connection_pool
     ruby2_keywords (0.0.2)
     sinatra (2.1.0)
       mustermann (~> 1.0)
